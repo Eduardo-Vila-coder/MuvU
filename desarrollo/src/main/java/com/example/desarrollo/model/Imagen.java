@@ -1,14 +1,17 @@
 package com.example.desarrollo.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.Date;
 
 @Setter
 @Getter
 @Entity
-public class PagoPublicidad {
+public class Imagen {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,13 +19,5 @@ public class PagoPublicidad {
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    private Habitacion habitacion;
 
-    private Double monto;
-
-    @Column(nullable = false)
-    private String metodoDePago;
-
-    private Date fechaInicio;
-    private Date fechaFin;
-
-
+    private String url;
 }
