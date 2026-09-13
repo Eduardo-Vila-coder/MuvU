@@ -6,10 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservaRequestDTO {
     @NotNull
-    private Estado estado;
+    private LocalDate fecha_fin;
 }

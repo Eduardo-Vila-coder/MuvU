@@ -5,19 +5,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-
+@Getter
+@Setter
 @Entity
 public class Reserva {
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Getter
     private final LocalDate fecha_inicio;
-    @Getter
     private final LocalDate fecha_fin;
-    @Getter
-    @Setter
     private Estado estado; // podria ser asi
     ///@ManyToOne
     ///@Column(name="habitacion_id",nullable=false)

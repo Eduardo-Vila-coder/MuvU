@@ -2,10 +2,13 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
+import com.example.desarrollo.model.Estado;
 import com.example.desarrollo.model.Reserva;
 import com.example.desarrollo.repository.ReservaRepository;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,6 +29,13 @@ public class ReservaService {
     public ReservaResponseDTO createReserva(ReservaRequestDTO reservaRequestDTO){
         Reserva newReserva=modelMapper.map(reservaRequestDTO, Reserva.class);
         newReserva= reservaRepository.save(newReserva);
+        return modelMapper.map(newReserva,ReservaResponseDTO.class);
+    }
+    @Transactional
+    public ReservaResponseDTO cancelReserva(Long id){
+        Reserva reserva=reservaRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No existe reserva con el ID:"+id));
+        reserva.setEstado(Estado.CANCELADO);
+        Reserva newReserva=reservaRepository.save(reserva);
         return modelMapper.map(newReserva,ReservaResponseDTO.class);
     }
 }

@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import com.example.desarrollo.model.Reserva;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import java.net.URI;
 import java.util.List;
 
@@ -37,5 +36,9 @@ public class ReservaController {
         URI location = URI.create("reservas/"+reservaResponseDTO.getId());
         return ResponseEntity.created(location).body(reservaResponseDTO);
     }
-
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<ReservaResponseDTO> updateReserva(@PathVariable Long id){
+        ReservaResponseDTO reservaResponseDTO=reservaService.cancelReserva(id);
+        return ResponseEntity.ok(reservaResponseDTO);
+    }
 }
