@@ -22,16 +22,16 @@ public class Habitacion {
     private double precio;
     private Integer area;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)
     private Arrendador arrendador;
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reserva> reservas;
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Imagen> imagenes;
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PagoPublicidad> pagoPublicidades;
 }

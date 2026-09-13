@@ -14,12 +14,12 @@ import java.util.List;
 public class Arrendador extends Usuario {
     private String dni_foto;
 
-    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Habitacion> habitaciones;
 
 
     // Los 2 ManyToMany estarán en periodo de revisión
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "arrendador_calificacionEstudiante",
             joinColumns = @JoinColumn(name = "arrendador_id"),
@@ -27,7 +27,7 @@ public class Arrendador extends Usuario {
     )
     private List<CalificacionEstudiante> calificacionEstudiantes;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "arrendador_calificacionArrendador",
             joinColumns = @JoinColumn(name = "arrendador_id"),
