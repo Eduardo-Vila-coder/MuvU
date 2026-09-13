@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,12 +27,19 @@ public class Habitacion {
     @JoinColumn(name = "arrendador_id", nullable = false)
     private Arrendador arrendador;
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
-    private List<Reserva> reservas;
+    @OneToMany(mappedBy = "habitacion")
+    private List<Reserva> reservas = new ArrayList<>();
 
     @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
-    private List<Imagen> imagenes;
+    private List<Imagen> imagenes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
-    private List<PagoPublicidad> pagoPublicidades;
+    @OneToMany(mappedBy = "habitacion")
+    private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
+
+    public Habitacion(String direccion, double precio, Integer area, Arrendador arrendador) {
+        this.direccion = direccion;
+        this.precio = precio;
+        this.area = area;
+        this.arrendador = arrendador;
+    }
 }
