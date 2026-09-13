@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,7 @@ import lombok.Setter;
 @Entity
 public class Universidad {
 
+    @Id
     private String nombre;
 
     //la otra opcion que me recomienda la IA:
