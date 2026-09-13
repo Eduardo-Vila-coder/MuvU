@@ -10,8 +10,8 @@ import jakarta.validation.constraints.NotNull;
 @AllArgsConstructor
 public class ImagenRequestDTO {
 
-    //vas a requerir el ID; sin embargo, esta estará como un parametro...
-    //no deberia importar si es querry o path param no?
+    //Vamos a requerir el ID; sin embargo, esta estará como un parametro...
+    //¿El tipo del parametro no debería importar si es query o path param no?
 
     @NotNull(message = "La URL o ruta de la imagen es obligatoria")
     private String url;
