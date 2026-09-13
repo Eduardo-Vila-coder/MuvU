@@ -23,7 +23,7 @@ public class ReservaController {
         return ResponseEntity.ok(reservas);
     }
     @GetMapping("/{id}")
-    public ResponseEntity<ReservaResponseDTO> getReservaById(@PathVariable Long id){
+    public ResponseEntity<Reserva> getReservaById(@PathVariable Long id){
         Reserva reserva= reservaService.findById(id);
         if(reserva!=null){
             return ResponseEntity.ok(reserva);
