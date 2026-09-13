@@ -1,15 +1,16 @@
 package com.example.desarrollo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Imagen {
 
     @Id
@@ -17,6 +18,7 @@ public class Imagen {
     private Long id;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "habitacion_id")
 //    private Habitacion habitacion;
 
     private String url;
