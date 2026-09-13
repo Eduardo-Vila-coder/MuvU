@@ -10,8 +10,6 @@ import java.util.Date;
 @Setter
 @Getter
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 public class PagoPublicidad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
