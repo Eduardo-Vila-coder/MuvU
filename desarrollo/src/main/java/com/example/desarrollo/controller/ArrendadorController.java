@@ -4,17 +4,19 @@ import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.ArrendadorResponseDTO;
 import com.example.desarrollo.service.ArrendadorService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/arrendador")
-@AllArgsConstructor
 public class ArrendadorController {
-    @Autowired
     private final ArrendadorService arrendadorService;
+
+    @Autowired
+    public ArrendadorController(ArrendadorService arrendadorService) {
+        this.arrendadorService = arrendadorService;
+    }
 
     @PostMapping
     public ResponseEntity<ArrendadorResponseDTO> createArrendador(
