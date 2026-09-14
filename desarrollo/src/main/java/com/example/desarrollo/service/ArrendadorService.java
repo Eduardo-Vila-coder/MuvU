@@ -4,15 +4,20 @@ import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.ArrendadorResponseDTO;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.repository.ArrendadorRepository;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class ArrendadorService {
     private final ArrendadorRepository arrendadorRepository;
     private final ModelMapper modelMapper;
+
+    @Autowired
+    public ArrendadorService(ArrendadorRepository arrendadorRepository, ModelMapper modelMapper) {
+        this.arrendadorRepository = arrendadorRepository;
+        this.modelMapper = modelMapper;
+    }
 
     // Create (POST)
     public ArrendadorResponseDTO save(ArrendadorRequestDTO arrendadorRequestDTO) {
@@ -25,7 +30,7 @@ public class ArrendadorService {
             newArrendador = arrendadorRepository.save(newArrendador);
             return modelMapper.map(newArrendador, ArrendadorResponseDTO.class);
         } else {
-            throw new IllegalArgumentException("Arrendador nombre, correo and constrasena cannot be null or empty");
+            throw new IllegalArgumentException("El nombre, correo o constrasena de un Arrendador no pueden ser nulos ni vacios");
         }
     }
 
@@ -41,6 +46,8 @@ public class ArrendadorService {
     }
 
     // Update (PUT) - Que se actualice la foto del DNI
+
+    // (PATCH)
 
     // Delete (DELETE)
     public void deleteById(Long id) {
