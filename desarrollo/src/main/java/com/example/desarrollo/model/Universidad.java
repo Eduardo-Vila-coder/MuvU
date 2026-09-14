@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
 public class Universidad {
 
     @Id
