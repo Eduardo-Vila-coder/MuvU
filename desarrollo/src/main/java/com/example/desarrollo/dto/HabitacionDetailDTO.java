@@ -1,5 +1,6 @@
 package com.example.desarrollo.dto;
 
+import com.example.desarrollo.model.Imagen;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

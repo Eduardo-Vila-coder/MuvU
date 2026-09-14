@@ -12,10 +12,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/habitacion")
-@AllArgsConstructor
 public class HabitacionController {
-    @Autowired
     private final HabitacionService habitacionService;
+
+    @Autowired
+    public HabitacionController(HabitacionService habitacionService) {
+        this.habitacionService = habitacionService;
+    }
 
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
@@ -34,6 +37,13 @@ public class HabitacionController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // Para los arrendadores que quieran agregar imagenes a su habitacion
+    @PatchMapping("/{id}/add-imagen/{imagen_id}")
+    public ResponseEntity<HabitacionDetailDTO> addImagen(@PathVariable("id") Long id, @PathVariable("imagen_id") Long imagen_id) {
+        HabitacionDetailDTO habitacionDetailDTO = habitacionService.addImagen(id, imagen_id);
+        return ResponseEntity.ok(habitacionDetailDTO);
     }
 
     @DeleteMapping("/{id}")

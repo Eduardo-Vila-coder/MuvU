@@ -3,19 +3,28 @@ package com.example.desarrollo.service;
 import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
+import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Habitacion;
+import com.example.desarrollo.model.Imagen;
 import com.example.desarrollo.repository.HabitacionRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.desarrollo.repository.ImagenRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class HabitacionService {
-    @Autowired
     private final HabitacionRepository habitacionRepository;
+    private final ImagenRepository imagenRepository;
     private final ModelMapper modelMapper;
+
+    @Autowired
+    public HabitacionService(HabitacionRepository habitacionRepository, ImagenRepository imagenRepository, ModelMapper modelMapper) {
+        this.habitacionRepository = habitacionRepository;
+        this.imagenRepository = imagenRepository;
+        this.modelMapper = modelMapper;
+    }
 
     // Create (POST)
     public HabitacionResponseDTO save(HabitacionRequestDTO habitacionRequestDTO) {
@@ -44,7 +53,28 @@ public class HabitacionService {
 
     // Update (PUT)
 
-    // PATCH
+    // (PATCH)
+    public HabitacionDetailDTO addImagen(Long habitacionId, Long imagenId) {
+        Imagen imagen = imagenRepository.findById(imagenId).orElse(null);
+
+        if (imagen == null) {
+            throw new ResourceNotFoundException("No fue encontrada la imagen con id: " + imagenId);
+        }
+
+        Habitacion habitacion = habitacionRepository.findById(habitacionId)
+                .orElseThrow(() -> new ResourceNotFoundException("No fue encontrada la habitacion con id: " + habitacionId));
+
+
+        if (habitacion.getImagenes().contains(imagen)) {
+            throw new ConflictException("La imagen con id: " + imagenId + " ya esta asociada a la habitacion con id: " + habitacionId);
+        }
+
+        habitacion.getImagenes().add(imagen);
+
+        habitacion = habitacionRepository.save(habitacion);
+
+        return modelMapper.map(habitacion, HabitacionDetailDTO.class);
+    }
 
     // Delete (DELETE)
     public void deleteById(Long id) {
