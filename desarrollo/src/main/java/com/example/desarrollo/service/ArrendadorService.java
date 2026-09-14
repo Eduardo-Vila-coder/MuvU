@@ -27,7 +27,7 @@ public class ArrendadorService {
             newArrendador = arrendadorRepository.save(newArrendador);
             return modelMapper.map(newArrendador, ArrendadorResponseDTO.class);
         } else {
-            throw new IllegalArgumentException("Arrendador nombre, correo and constrasena cannot be null or empty");
+            throw new IllegalArgumentException("El nombre, correo o constrasena de un Arrendador no pueden ser nulos ni vacios");
         }
     }
 
