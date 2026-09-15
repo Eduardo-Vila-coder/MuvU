@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,8 +15,19 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@PrimaryKeyJoinColumn(name="usuario_id")
-public class Estudiante extends Usuario{
+
+public class Estudiante {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String nombre;
+
+    @Email
+    @Column(unique = true) private String correo;
+    private String contrasena;
+    private boolean verificado = false;
+
     @ManyToOne
     @JoinColumn(name = "universidad_id")
     private Universidad universidad;
@@ -23,8 +35,7 @@ public class Estudiante extends Usuario{
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reserva> reservas = new ArrayList<>();
 
-    public Estudiante(String nombre, String correo, String contrasena, Universidad universidad) {
-        super(nombre, correo, contrasena);
-        this.universidad = universidad;
-    }
+
+    @OneToMany(mappedBy="autor")
+    private List<Calificacion> calificacionesDadas = new ArrayList<>();
 }

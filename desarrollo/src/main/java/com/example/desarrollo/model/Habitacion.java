@@ -36,10 +36,7 @@ public class Habitacion {
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
 
-    public Habitacion(String direccion, double precio, Integer area, Arrendador arrendador) {
-        this.direccion = direccion;
-        this.precio = precio;
-        this.area = area;
-        this.arrendador = arrendador;
-    }
+    @OneToMany(mappedBy="receptor")
+    private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
+
 }
