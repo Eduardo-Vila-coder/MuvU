@@ -9,20 +9,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
 @AllArgsConstructor
 public class Universidad {
-
     @Id
     private String nombre;
 
-    //la otra opcion que me recomienda la IA:
-    // public record direccion(String calle, String ciudad, String codigoPostal, String pais) {}
-
     private String direccion;
 
-//    @OneToMany(mappedBy = "universidad")
-//    private List<Estudiante> estudiantes;
+    @OneToMany(mappedBy = "universidad")
+    private List<Estudiante> estudiantes =  new ArrayList<>();
+
+    public Universidad(String nombre, String direccion) {
+        this.nombre = nombre;
+        this.direccion = direccion;
+    }
+
 }
