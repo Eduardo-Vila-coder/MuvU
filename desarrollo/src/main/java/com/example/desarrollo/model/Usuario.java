@@ -20,13 +20,22 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Email @Column(unique = true) private String correo;
+
+    @Email
+    @Column(unique = true, nullable = false)
+    private String correo;
+
+    @Column(nullable = false)
     private String contrasena;
+
     private boolean verificado = false;
-    @OneToMany(mappedBy="autor")
+
+    @OneToMany(mappedBy="autor", cascade=CascadeType.ALL)
     private List<Calificacion> calificacionesDadas = new ArrayList<>();
-    @OneToMany(mappedBy="receptor")
+
+    @OneToMany(mappedBy="receptor", cascade=CascadeType.ALL)
     private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
+
     private String nombre;
 
     public Usuario(String nombre, String correo, String contrasena) {
