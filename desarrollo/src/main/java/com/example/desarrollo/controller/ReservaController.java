@@ -16,6 +16,7 @@ public class ReservaController {
     public ReservaController(ReservaService reservaService){
         this.reservaService=reservaService;
     }
+
     @GetMapping
     public ResponseEntity<List<Reserva>> getALlReserva(){
         List<Reserva> reservas=reservaService.findAll();

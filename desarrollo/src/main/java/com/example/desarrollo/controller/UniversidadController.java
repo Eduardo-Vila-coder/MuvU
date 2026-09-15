@@ -35,8 +35,8 @@ public class UniversidadController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Universidad> getUniById(@PathVariable String name) {
-        Universidad uni = universidadService.findById(name);
+    public ResponseEntity<Universidad> getUniById(@PathVariable Long id) {
+        Universidad uni = universidadService.findById(id);
         if (uni!=null){
             return ResponseEntity.ok(uni);
         } else {
@@ -45,8 +45,8 @@ public class UniversidadController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUni(@PathVariable String name) {
-        universidadService.deleteById(name);
-        return ResponseEntity.noContent().build();//o ok() en vez de .noContent()
+    public ResponseEntity<Void> deleteUni(@PathVariable Long id) {
+        universidadService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

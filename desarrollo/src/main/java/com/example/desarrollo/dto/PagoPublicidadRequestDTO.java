@@ -1,3 +1,5 @@
+
+/*
 package com.example.desarrollo.dto;
 
 import jakarta.validation.constraints.NotNull;
@@ -13,5 +15,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PagoPublicidadRequestDTO {
-
 }
+
+*/

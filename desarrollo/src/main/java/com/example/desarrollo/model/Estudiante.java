@@ -14,8 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @PrimaryKeyJoinColumn(name="usuario_id")
 public class Estudiante extends Usuario{
+
     @ManyToOne
-    @JoinColumn(name = "universidad_id")
     private Universidad universidad;
 
     @OneToMany(mappedBy = "estudiante")

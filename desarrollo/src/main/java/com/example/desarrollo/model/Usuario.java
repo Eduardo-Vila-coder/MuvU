@@ -43,4 +43,8 @@ public class Usuario {
         this.correo = correo;
         this.contrasena = contrasena;
     }
+
+    public Boolean getVerificado() {
+        return verificado;
+    }
 }
