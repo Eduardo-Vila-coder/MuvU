@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
 public class Habitacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

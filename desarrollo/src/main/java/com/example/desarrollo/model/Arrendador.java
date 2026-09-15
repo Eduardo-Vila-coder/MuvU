@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
 @PrimaryKeyJoinColumn(name = "usuario_id")
 public class Arrendador extends Usuario {
     private String dniFoto;
