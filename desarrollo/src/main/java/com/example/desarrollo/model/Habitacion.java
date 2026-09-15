@@ -21,17 +21,17 @@ public class Habitacion {
     private double precio;
     private Integer area;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "arrendador_id", nullable = false)
     private Arrendador arrendador;
 
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<Reserva> reservas = new ArrayList<>();
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Imagen> imagenes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL)
     private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
 
     public Habitacion(String direccion, double precio, Integer area, Arrendador arrendador) {
