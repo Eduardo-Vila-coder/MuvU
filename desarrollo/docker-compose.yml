@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: Muvu_container
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: Muvu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres

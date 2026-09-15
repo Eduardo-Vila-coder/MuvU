@@ -10,7 +10,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("reservas")
+@RequestMapping("/reservas")
 public class ReservaController {
     private final ReservaService reservaService;
     public ReservaController(ReservaService reservaService){

@@ -1,42 +1,28 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@PrimaryKeyJoinColumn(name = "usuario_id")
 public class Arrendador extends Usuario {
-    private String dni_foto;
+    private String dniFoto;
 
-    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL)
-    private List<Habitacion> habitaciones;
+    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Habitacion> habitaciones = new ArrayList<>();
 
-
-    // Los 2 ManyToMany estarán en periodo de revisión
-    @ManyToMany
-    @JoinTable(
-            name = "arrendador_calificacionEstudiante",
-            joinColumns = @JoinColumn(name = "arrendador_id"),
-            inverseJoinColumns = @JoinColumn(name = "calificacionEstudiante_id") // Agregarle ID a las relaciones
-    )
-    private List<CalificacionEstudiante> calificacionEstudiantes;
-
-    @ManyToMany
-    @JoinTable(
-            name = "arrendador_calificacionArrendador",
-            joinColumns = @JoinColumn(name = "arrendador_id"),
-            inverseJoinColumns = @JoinColumn(name = "calificaionArrendador_id")
-    )
-    private List<CalificacionArrendador> calificacionArrendadores;
-
-    public Arrendador(boolean verificado, String correo, String nombre, String contrasena, String dni_foto) {
-        super(verificado, correo, nombre, contrasena);
-        this.dni_foto = dni_foto;
+    public Arrendador(String nombre, String correo, String contrasena, String dniFoto) {
+        super(nombre, correo, contrasena);
+        this.dniFoto = dniFoto;
     }
 }

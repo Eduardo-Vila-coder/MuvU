@@ -5,14 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.Date;
 
 @Setter
 @Getter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class PagoPublicidad {
+public class Imagen {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,14 +21,5 @@ public class PagoPublicidad {
     @JoinColumn(name = "habitacion_id")
     private Habitacion habitacion;
 
-    private Double monto;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private MetodoPago metodoPago;
-
-    private Date fechaInicio;
-    private Date fechaFin;
-
-
+    private String url;
 }
