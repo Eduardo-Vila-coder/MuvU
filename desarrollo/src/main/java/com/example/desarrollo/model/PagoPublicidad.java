@@ -17,10 +17,15 @@ public class PagoPublicidad {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habitacion_id")
+    private Habitacion habitacion;
+
     private Double monto;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String metodoDePago;
+    private MetodoPago metodoPago;
 
     private Date fechaInicio;
     private Date fechaFin;
