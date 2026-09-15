@@ -16,10 +16,6 @@ public class PagoPublicidad {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "habitacion_id")
-//    private Habitacion habitacion;
-
     private Double monto;
 
     @Column(nullable = false)
