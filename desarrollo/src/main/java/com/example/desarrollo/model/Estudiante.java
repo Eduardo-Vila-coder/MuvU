@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,7 +20,7 @@ public class Estudiante extends Usuario{
     @JoinColumn(name = "universidad_id")
     private Universidad universidad;
 
-    @OneToMany(mappedBy = "estudiante")
+    @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reserva> reservas = new ArrayList<>();
 
     public Estudiante(String nombre, String correo, String contrasena, Universidad universidad) {
