@@ -16,6 +16,7 @@ import java.util.List;
 @Setter
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class Universidad {
     @Id
     private String nombre;

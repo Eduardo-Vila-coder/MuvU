@@ -11,6 +11,7 @@ import java.util.Date;
 @Getter
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class PagoPublicidad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

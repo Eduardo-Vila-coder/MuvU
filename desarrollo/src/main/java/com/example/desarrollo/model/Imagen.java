@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class Imagen {
 
     @Id
