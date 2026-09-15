@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @PrimaryKeyJoinColumn(name="usuario_id")
 public class Estudiante extends Usuario{
     @ManyToOne
