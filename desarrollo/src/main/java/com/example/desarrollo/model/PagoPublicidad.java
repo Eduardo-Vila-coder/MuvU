@@ -11,19 +11,21 @@ import java.util.Date;
 @Getter
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class PagoPublicidad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "habitacion_id")
-//    private Habitacion habitacion;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habitacion_id")
+    private Habitacion habitacion;
 
     private Double monto;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String metodoDePago;
+    private MetodoPago metodoPago;
 
     private Date fechaInicio;
     private Date fechaFin;
