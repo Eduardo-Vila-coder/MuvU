@@ -16,9 +16,9 @@ public class Imagen {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "habitacion_id")
-//    private Habitacion habitacion;
-
     private String url;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "habitacion_id", nullable = false)
+    private Habitacion habitacion;
 }
