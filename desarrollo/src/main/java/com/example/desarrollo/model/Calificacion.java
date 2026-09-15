@@ -9,6 +9,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(uniqueConstraints = @UniqueConstraint(columnNames={"reserva_id","autor_id"}))
 public class Calificacion {
@@ -17,14 +18,14 @@ public class Calificacion {
     private Long id;
     private int puntuacion;
     private String descripcion;
-    @ManyToOne
-    @JoinColumn(name="autor_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="autor_id", nullable = false)
     private Usuario autor;
-    @ManyToOne
-    @JoinColumn(name="receptor_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="receptor_id", nullable = false)
     private Usuario receptor;
-    @ManyToOne
-    @JoinColumn(name = "reserva_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "reserva_id", nullable = false)
     private Reserva reserva;
     public Calificacion(int puntuacion, String descripcion, Usuario autor, Usuario receptor, Reserva reserva) {
         this.puntuacion = puntuacion;

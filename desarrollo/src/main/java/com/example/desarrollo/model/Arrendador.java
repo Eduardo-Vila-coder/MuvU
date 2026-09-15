@@ -13,11 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
 @PrimaryKeyJoinColumn(name = "usuario_id")
 public class Arrendador extends Usuario {
     private String dniFoto;
 
-    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Habitacion> habitaciones = new ArrayList<>();
 
     public Arrendador(String nombre, String correo, String contrasena, String dniFoto) {

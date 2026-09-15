@@ -14,15 +14,14 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
+@AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name="usuario")
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Email
-    @Column(unique = true)
-    private String correo;
+    @Email @Column(unique = true) private String correo;
     private String contrasena;
     private boolean verificado = false;
     @OneToMany(mappedBy="autor")
