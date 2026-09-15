@@ -10,15 +10,16 @@ import lombok.Setter;
 @Getter
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 public class Imagen {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "habitacion_id")
-//    private Habitacion habitacion;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habitacion_id")
+    private Habitacion habitacion;
 
     private String url;
 }
