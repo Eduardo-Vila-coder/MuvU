@@ -1,6 +1,12 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MuvU" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="envFilePaths">
+      <option value="$PROJECT_DIR$/desarrollo/.env" />
+    </option>
     <module name="desarrollo" />
+    <selectedOptions>
+      <option name="environmentVariables" />
+    </selectedOptions>
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.desarrollo.DesarrolloApplication" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
