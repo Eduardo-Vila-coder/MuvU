@@ -33,15 +33,15 @@ public class UniversidadService {
         }
     }
 
-    public Universidad findById(String name) {
-        return universidadRepository.findById(name).orElse(null);
+    public Universidad findById(Long id) {
+        return universidadRepository.findById(id).orElse(null);
     }
 
     public List<Universidad> findAll() {
         return universidadRepository.findAll();
     }
 
-    public void deleteById(String name) {
-        universidadRepository.deleteById(name);
+    public void deleteById(Long id) {
+        universidadRepository.deleteById(id);
     }
 }
