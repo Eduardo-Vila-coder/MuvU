@@ -16,8 +16,11 @@ public class Reserva {
     private final LocalDate fecha_fin;
     private Estado estado; // podria ser asi
     ///@ManyToOne
-    ///@Column(name="habitacion_id",nullable=false)
+    ///@JoinColumn(name="habitacion_id",nullable=false)
     ///private Habitacion habitacion;
+    ///@ManyToOne
+    ///@JoinColumn(name="estudiante_id",nullable=false)
+    ///private Estudiante estudiante;
     public Reserva(LocalDate fecha_fin){
         fecha_inicio=LocalDate.now();
         this.fecha_fin=fecha_fin;
