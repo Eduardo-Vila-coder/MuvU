@@ -24,5 +24,7 @@ public class PagoPublicidad {
     private Date fechaInicio;
     private Date fechaFin;
 
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "habitacion_id", nullable = false)
+    private Habitacion habitacion;
 }
