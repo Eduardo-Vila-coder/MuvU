@@ -13,6 +13,15 @@ public class MapperConfig {
 
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.typeMap(EstudianteRequestDTO.class, Estudiante.class)
+                .addMappings(m -> m.skip(Estudiante::setUniversidad));
+        modelMapper.typeMap(CalificacionRequestDTO.class, Calificacion.class)
+                .addMappings(m -> {
+                    m.skip(Calificacion::setAutor);
+                    m.skip(Calificacion::setReceptor);
+                    m.skip(Calificacion::setReserva);
+                });
+        return modelMapper;
     }
 }
