@@ -17,7 +17,7 @@ import java.util.List;
 public class Arrendador extends Usuario {
     private String dniFoto;
 
-    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Habitacion> habitaciones = new ArrayList<>();
 
     public Arrendador(String nombre, String correo, String contrasena, String dniFoto) {
