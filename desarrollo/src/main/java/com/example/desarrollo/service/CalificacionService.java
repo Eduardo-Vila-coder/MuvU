@@ -1,16 +1,12 @@
 package com.example.desarrollo.service;
 
-import com.example.desarrollo.model.Calificacion;
-import com.example.desarrollo.model.Reserva;
+
 import com.example.desarrollo.repository.CalificacionRepository;
 import com.example.desarrollo.repository.ReservaRepository;
 import com.example.desarrollo.repository.UsuarioRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class CalificacionService {
