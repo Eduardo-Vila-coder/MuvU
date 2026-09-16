@@ -1,5 +1,6 @@
 package com.example.desarrollo.dto;
 
+import com.example.desarrollo.model.Universidad;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -23,5 +24,5 @@ public class EstudianteRequestDTO {
     private String contrasena;
 
     @NotNull
-    private Long universidadId;
+    private Universidad universidad;
 }
