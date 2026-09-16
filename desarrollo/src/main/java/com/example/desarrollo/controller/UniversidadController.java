@@ -5,6 +5,7 @@ import com.example.desarrollo.dto.UniversidadResponseDTO;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.service.UniversidadService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +25,7 @@ public class UniversidadController {
     @PostMapping
     public ResponseEntity<UniversidadResponseDTO> createUniversidad(@Valid @RequestBody UniversidadRequestDTO uniRequestDTO) {
         UniversidadResponseDTO uniResponseDTO = universidadService.createUniversidad(uniRequestDTO);
-        URI location = URI.create("universidad/"+ uniResponseDTO.getNombre());
-        return ResponseEntity.created(location).body(uniResponseDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(uniResponseDTO);
     }
 
     @GetMapping

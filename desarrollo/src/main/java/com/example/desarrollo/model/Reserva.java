@@ -1,5 +1,6 @@
 package com.example.desarrollo.model;
 
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,8 +34,8 @@ public class Reserva {
     public Reserva(LocalDate fecha_fin, Estudiante estudiante, Habitacion habitacion) {
         fecha_inicio=LocalDate.now();
         this.fecha_fin=fecha_fin;
-        this.estado=Estado.PENDIENTE;
-        this.estudiante=estudiante;
-        this.habitacion=habitacion;
+        this.estado = Estado.PENDIENTE;
+        this.estudiante = estudiante;
+        this.habitacion = habitacion;
     }
 }
