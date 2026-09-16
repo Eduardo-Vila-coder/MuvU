@@ -29,19 +29,24 @@ public class UniversidadController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Universidad>> getAllUnis() {
-        List<Universidad> unis = universidadService.findAll();
-        return ResponseEntity.ok(unis);
+    public ResponseEntity<List<UniversidadResponseDTO>> getAllUnis() {
+        List<UniversidadResponseDTO> universidades = universidadService.findAllDTO();
+
+        if (universidades.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204 No Content si la lista está vacía
+        }
+
+        return ResponseEntity.ok(universidades); // HTTP 200 OK con el listado de DTOs
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Universidad> getUniById(@PathVariable Long id) {
-        Universidad uni = universidadService.findById(id);
-        if (uni!=null){
-            return ResponseEntity.ok(uni);
-        } else {
+    public ResponseEntity<UniversidadResponseDTO> getUniById(@PathVariable Long id) {
+        UniversidadResponseDTO uni = universidadService.findByIdDTO(id);
+        if (uni == null) {
             return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok(uni);
     }
 
     @DeleteMapping("/{id}")

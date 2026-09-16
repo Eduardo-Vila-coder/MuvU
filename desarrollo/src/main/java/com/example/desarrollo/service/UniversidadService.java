@@ -7,6 +7,7 @@ import com.example.desarrollo.repository.UniversidadRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,4 +45,27 @@ public class UniversidadService {
     public void deleteById(Long id) {
         universidadRepository.deleteById(id);
     }
+
+    public UniversidadResponseDTO findByIdDTO(Long id) {
+        Universidad universidad = this.findById(id);
+
+        if (universidad == null) {
+            return null;
+        }
+
+        return modelMapper.map(universidad, UniversidadResponseDTO.class);
+    }
+
+    public List<UniversidadResponseDTO> findAllDTO() {
+        List<Universidad> universidades = this.findAll();
+        List<UniversidadResponseDTO> dtos = new ArrayList<>();
+
+        for (Universidad uni : universidades) {
+            UniversidadResponseDTO dto = modelMapper.map(uni, UniversidadResponseDTO.class);
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+
 }
