@@ -2,14 +2,12 @@ package com.example.desarrollo.controller;
 
 import com.example.desarrollo.dto.UniversidadRequestDTO;
 import com.example.desarrollo.dto.UniversidadResponseDTO;
-import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.service.UniversidadService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -51,7 +49,10 @@ public class UniversidadController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUni(@PathVariable Long id) {
+        if (universidadService.findById(id) == null) {
+            return ResponseEntity.notFound().build(); // HTTP 404 si el ID no existe
+        }
         universidadService.deleteById(id);
-        return ResponseEntity.noContent().build();//o ok() en vez de .noContent()
+        return ResponseEntity.noContent().build(); // HTTP 204 si se eliminó con éxito
     }
 }

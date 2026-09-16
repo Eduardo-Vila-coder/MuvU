@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UniversidadResponseDTO {
-
+    private Long id;
     private String nombre;
     private String direccion;
 }
