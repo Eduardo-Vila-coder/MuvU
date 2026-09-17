@@ -2,12 +2,16 @@ package com.example.desarrollo.controller;
 
 import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
+import com.example.desarrollo.dto.HabitacionRequestPutDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.service.HabitacionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/habitacion")
@@ -18,6 +22,14 @@ public class HabitacionController {
     public HabitacionController(HabitacionService habitacionService) {
         this.habitacionService = habitacionService;
     }
+
+
+    @GetMapping
+    public ResponseEntity<List<HabitacionResponseDTO>> getAllHabitaciones() {
+        List<HabitacionResponseDTO> habitaciones = habitacionService.findAllDTO();
+        return ResponseEntity.ok().body(habitaciones);
+    }
+
 
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
@@ -49,5 +61,11 @@ public class HabitacionController {
     public ResponseEntity<Void> deleteHabitacion(@PathVariable Long id) {
         habitacionService.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<HabitacionResponseDTO> updateHabitacion(@PathVariable Long id, @Valid @RequestBody HabitacionRequestPutDTO  habitacionRequestPutDTO) {
+        HabitacionResponseDTO habitacionResponseDTO =  habitacionService.actualizar(id, habitacionRequestPutDTO);
+        return ResponseEntity.ok(habitacionResponseDTO);
     }
 }

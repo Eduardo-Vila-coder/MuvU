@@ -6,6 +6,9 @@ import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Estado;
 import com.example.desarrollo.model.Reserva;
 import com.example.desarrollo.repository.ReservaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,13 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class ReservaService {
+@RequiredArgsConstructor
+
+public class ReservaService implements ApplicationEventPublisherAware {
     private final ReservaRepository reservaRepository;
     private final ModelMapper modelMapper;
-    public ReservaService(ReservaRepository reservaRepository, ModelMapper modelMapper){
-        this.reservaRepository=reservaRepository;
-        this.modelMapper=modelMapper;
+    private ApplicationEventPublisher publisher;
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
     }
+
+
     public Reserva findById(Long id){
         return reservaRepository.findById(id).orElse(null);
     }

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/arrendador")
 public class ArrendadorController {
@@ -36,9 +38,16 @@ public class ArrendadorController {
         }
     }
 
+    @GetMapping
+    public ResponseEntity<List<ArrendadorResponseDTO>> getAllArrendadores() {
+        List<ArrendadorResponseDTO> arrendadores = arrendadorService.findAllDTO();
+        return ResponseEntity.ok().body(arrendadores);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArrendador(@PathVariable Long id) {
         arrendadorService.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
 }

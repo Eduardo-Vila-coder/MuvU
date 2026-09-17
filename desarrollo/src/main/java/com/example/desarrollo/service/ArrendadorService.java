@@ -3,11 +3,13 @@ package com.example.desarrollo.service;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.ArrendadorResponseDTO;
 import com.example.desarrollo.model.Arrendador;
+import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.repository.ArrendadorRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -53,6 +55,15 @@ public class ArrendadorService {
         }
         return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
 
+    }
+
+    public List<ArrendadorResponseDTO> findAllDTO() {
+        List<Arrendador> arrendadores = this.findAll();
+        List<ArrendadorResponseDTO> dtos = new ArrayList<>();
+        for (Arrendador arrendador : arrendadores) {
+            dtos.add(modelMapper.map(arrendador, ArrendadorResponseDTO.class));
+        }
+        return dtos;
     }
 
 }

@@ -23,7 +23,7 @@ public class Arrendador {
     private String nombre;
     private String correo;
     private String contrasena;
-    private boolean verificado = false;
+    private Boolean verificado = false;
     private String dniFoto;
 
     @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
