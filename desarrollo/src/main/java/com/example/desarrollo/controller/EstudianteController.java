@@ -7,13 +7,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.desarrollo.dto.EstudiantePerfilDTO;
 import com.example.desarrollo.dto.EstudianteUpdateRequestDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/estudiantes")
@@ -29,10 +26,6 @@ public class EstudianteController {
         return new ResponseEntity<>(estudianteService.createEstudiante(dto), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<EstudianteResponseDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(estudianteService.getById(id));
-    }
 
     @GetMapping
     public ResponseEntity<Page<EstudianteResponseDTO>> getAll(
@@ -54,7 +47,7 @@ public class EstudianteController {
     }
 
     @GetMapping("/{id}/perfil")
-    public ResponseEntity<EstudiantePerfilDTO> getPerfil(@PathVariable Long id) {
+    public ResponseEntity<EstudianteResponseDTO> getPerfil(@PathVariable Long id) {
         return ResponseEntity.ok(estudianteService.getPerfil(id));
     }
 }

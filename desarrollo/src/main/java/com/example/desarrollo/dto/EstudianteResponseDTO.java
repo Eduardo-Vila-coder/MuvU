@@ -1,5 +1,6 @@
 package com.example.desarrollo.dto;
 
+import com.example.desarrollo.model.Universidad;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,5 +15,5 @@ public class EstudianteResponseDTO {
     private String nombre;
     private String correo;
     private boolean verificado;
-    private String universidadNombre;
+    private UniversidadResponseDTO Universidad;
 }

@@ -2,13 +2,12 @@ package com.example.desarrollo.controller;
 
 import com.example.desarrollo.dto.UniversidadRequestDTO;
 import com.example.desarrollo.dto.UniversidadResponseDTO;
-import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.service.UniversidadService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -24,29 +23,36 @@ public class UniversidadController {
     @PostMapping
     public ResponseEntity<UniversidadResponseDTO> createUniversidad(@Valid @RequestBody UniversidadRequestDTO uniRequestDTO) {
         UniversidadResponseDTO uniResponseDTO = universidadService.createUniversidad(uniRequestDTO);
-        URI location = URI.create("universidad/"+ uniResponseDTO.getNombre());
-        return ResponseEntity.created(location).body(uniResponseDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(uniResponseDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<Universidad>> getAllUnis() {
-        List<Universidad> unis = universidadService.findAll();
-        return ResponseEntity.ok(unis);
+    public ResponseEntity<List<UniversidadResponseDTO>> getAllUnis() {
+        List<UniversidadResponseDTO> universidades = universidadService.findAllDTO();
+
+        if (universidades.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204 No Content si la lista está vacía
+        }
+
+        return ResponseEntity.ok(universidades); // HTTP 200 OK con el listado de DTOs
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Universidad> getUniById(@PathVariable Long id) {
-        Universidad uni = universidadService.findById(id);
-        if (uni!=null){
-            return ResponseEntity.ok(uni);
-        } else {
+    public ResponseEntity<UniversidadResponseDTO> getUniById(@PathVariable Long id) {
+        UniversidadResponseDTO uni = universidadService.findByIdDTO(id);
+        if (uni == null) {
             return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok(uni);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUni(@PathVariable Long id) {
+        if (universidadService.findById(id) == null) {
+            return ResponseEntity.notFound().build(); // HTTP 404 si el ID no existe
+        }
         universidadService.deleteById(id);
-        return ResponseEntity.noContent().build();//o ok() en vez de .noContent()
+        return ResponseEntity.noContent().build(); // HTTP 204 si se eliminó con éxito
     }
 }
