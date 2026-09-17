@@ -73,18 +73,14 @@ public class PagoPublicidadService {
                 .toList();
     }
 
-    // Regla de Negocio: Asignación de días según monto ingresado
+    //Tarifas fijas (30 soles = 30 días | 54 soles = 60 días)
     private LocalDate calcularFechaFin(LocalDate fechaInicio, Double monto) {
-        int dias = 0;
-
-        if (monto >= 54.0) {
-            dias = 60; // Oferta 60 días
-        } else if (monto >= 30.0) {
-            dias = 30; // Tarifa estándar 30 días
+        if (Double.compare(monto, 30.0) == 0) { //bueno, resulta que el monto == 30.0, puede fallar xd
+            return fechaInicio.plusDays(30);
+        } else if (Double.compare(monto, 54.0) == 0) {
+            return fechaInicio.plusDays(60);
         } else {
-            dias = monto.intValue(); // Tarifa base (1 sol = 1 día)
+            throw new IllegalArgumentException("Monto no permitido. Solo son 2 opciones disponibles");
         }
-
-        return fechaInicio.plusDays(dias);
     }
 }
