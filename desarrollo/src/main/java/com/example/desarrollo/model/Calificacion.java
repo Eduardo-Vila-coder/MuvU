@@ -15,8 +15,9 @@ public class Calificacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private int puntuacion;
+    private Integer puntuacion;
     private String descripcion;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="autor_id", nullable = false)
     private Estudiante autor;

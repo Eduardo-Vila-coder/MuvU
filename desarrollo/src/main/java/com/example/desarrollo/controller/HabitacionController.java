@@ -22,14 +22,14 @@ public class HabitacionController {
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
             @Valid @RequestBody HabitacionRequestDTO habitacionRequestDTO) {
-        HabitacionResponseDTO savedHabitacion = habitacionService.save(habitacionRequestDTO);
+        HabitacionResponseDTO savedHabitacion = habitacionService.guardar(habitacionRequestDTO);
         return ResponseEntity.ok(savedHabitacion);
     }
 
     // Para los clientes que quieren ver la habitacion
     @GetMapping("/{id}")
     public ResponseEntity<HabitacionDetailDTO> getHabitacionById(@PathVariable Long id) {
-        HabitacionDetailDTO habitacionDetailDTO = habitacionService.findById(id);
+        HabitacionDetailDTO habitacionDetailDTO = habitacionService.findByIdDTO(id);
 
         if (habitacionDetailDTO != null) {
             return ResponseEntity.ok(habitacionDetailDTO);

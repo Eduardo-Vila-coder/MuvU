@@ -14,6 +14,6 @@ public class EstudianteResponseDTO {
     private Long id;
     private String nombre;
     private String correo;
-    private boolean verificado;
+    private Boolean verificado;
     private UniversidadResponseDTO Universidad;
 }

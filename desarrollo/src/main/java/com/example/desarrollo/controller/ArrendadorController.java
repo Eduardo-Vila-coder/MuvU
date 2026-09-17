@@ -21,13 +21,13 @@ public class ArrendadorController {
     @PostMapping
     public ResponseEntity<ArrendadorResponseDTO> createArrendador(
             @Valid @RequestBody ArrendadorRequestDTO arrendadorRequestDTO) {
-        ArrendadorResponseDTO savedArrendador = arrendadorService.save(arrendadorRequestDTO);
+        ArrendadorResponseDTO savedArrendador = arrendadorService.guardar(arrendadorRequestDTO);
         return ResponseEntity.ok(savedArrendador);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ArrendadorResponseDTO> getArrendadorById(@PathVariable Long id) {
-        ArrendadorResponseDTO arrendadorResponseDTO = arrendadorService.findById(id);
+        ArrendadorResponseDTO arrendadorResponseDTO = arrendadorService.findByIdDTO(id);
 
         if (arrendadorResponseDTO != null) {
             return ResponseEntity.ok(arrendadorResponseDTO);

@@ -17,9 +17,10 @@ public class Imagen {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String url;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "habitacion_id")
     private Habitacion habitacion;
 
-    private String url;
 }

@@ -8,6 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ArrendadorService {
     private final ArrendadorRepository arrendadorRepository;
@@ -19,8 +21,24 @@ public class ArrendadorService {
         this.modelMapper = modelMapper;
     }
 
+    public Arrendador findById (Long id) {
+        return arrendadorRepository.findById(id).orElse(null);
+    }
+
+    public List<Arrendador> findAll() {
+        return arrendadorRepository.findAll();
+    }
+
+    public Arrendador save (Arrendador arrendador) {
+        return arrendadorRepository.save(arrendador);
+    }
+
+    public void deleteById(Long id) {
+        arrendadorRepository.deleteById(id);
+    }
+
     // Create (POST)
-    public ArrendadorResponseDTO save(ArrendadorRequestDTO arrendadorRequestDTO) {
+    public ArrendadorResponseDTO guardar(ArrendadorRequestDTO arrendadorRequestDTO) {
         if (arrendadorRequestDTO != null
             && arrendadorRequestDTO.getNombre() != null && !arrendadorRequestDTO.getNombre().isEmpty()
             && arrendadorRequestDTO.getCorreo() != null && !arrendadorRequestDTO.getCorreo().isEmpty()
@@ -35,22 +53,15 @@ public class ArrendadorService {
     }
 
     // Read (GET)
-    public ArrendadorResponseDTO findById(Long id) {
-        Arrendador arrendador = arrendadorRepository.findById(id).orElse(null);
+    public ArrendadorResponseDTO findByIdDTO(Long id) {
+        Arrendador arrendador = this.findById(id);
 
-        if (arrendador != null) {
-            return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
+        if (arrendador == null) {
+            throw new IllegalArgumentException("El arrendador no existe");
         }
+        return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
 
-        return null;
     }
 
-    // Update (PUT) - Que se actualice la foto del DNI
 
-    // (PATCH)
-
-    // Delete (DELETE)
-    public void deleteById(Long id) {
-        arrendadorRepository.deleteById(id);
-    }
 }

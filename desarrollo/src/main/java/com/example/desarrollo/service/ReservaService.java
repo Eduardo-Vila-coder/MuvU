@@ -23,9 +23,18 @@ public class ReservaService {
     public Reserva findById(Long id){
         return reservaRepository.findById(id).orElse(null);
     }
+
     public List<Reserva> findAll(){
         return reservaRepository.findAll();
     }
+
+    public void deleteById(Long id){
+        if (reservaRepository.existsById(id)){
+            reservaRepository.deleteById(id);
+        }
+        throw new  ResourceNotFoundException("No existe reserva con id: " + id);
+    }
+
     public ReservaResponseDTO createReserva(ReservaRequestDTO reservaRequestDTO){
         Reserva newReserva=modelMapper.map(reservaRequestDTO, Reserva.class);
         newReserva= reservaRepository.save(newReserva);

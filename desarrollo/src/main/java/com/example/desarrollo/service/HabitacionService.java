@@ -5,6 +5,7 @@ import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
+import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.Imagen;
 import com.example.desarrollo.repository.HabitacionRepository;
@@ -13,26 +14,53 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class HabitacionService {
     private final HabitacionRepository habitacionRepository;
     private final ImagenRepository imagenRepository;
     private final ModelMapper modelMapper;
+    private final ArrendadorService arrendadorService;
 
     @Autowired
-    public HabitacionService(HabitacionRepository habitacionRepository, ImagenRepository imagenRepository, ModelMapper modelMapper) {
+    public HabitacionService(HabitacionRepository habitacionRepository, ImagenRepository imagenRepository, ModelMapper modelMapper,  ArrendadorService arrendadorService) {
         this.habitacionRepository = habitacionRepository;
         this.imagenRepository = imagenRepository;
         this.modelMapper = modelMapper;
+        this.arrendadorService = arrendadorService;
+    }
+
+    public Habitacion findById(Long id) {
+        return habitacionRepository.findById(id).orElse(null);
+    }
+
+    public List<Habitacion> findAll() {
+        return habitacionRepository.findAll();
+    }
+
+    // Delete (DELETE)
+    public void deleteById(Long id) {
+        if  (habitacionRepository.existsById(id)) {
+            habitacionRepository.deleteById(id);
+        }
+        throw new ResourceNotFoundException("No existe habitacion con id: " + id);
     }
 
     // Create (POST)
-    public HabitacionResponseDTO save(HabitacionRequestDTO habitacionRequestDTO) {
+    public HabitacionResponseDTO guardar(HabitacionRequestDTO habitacionRequestDTO) {
         if (habitacionRequestDTO != null
             && habitacionRequestDTO.getDireccion() != null && !habitacionRequestDTO.getDireccion().isEmpty()
             && habitacionRequestDTO.getArea() != null
             && habitacionRequestDTO.getArrendador() != null) {
+
+            Arrendador arrendador = arrendadorService.findById(habitacionRequestDTO.getArrendador().getId());
+            if (arrendador == null) {
+                throw new ResourceNotFoundException("Arrendador no existe");
+            }
+
             Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
+            newHabitacion.setArrendador(arrendador);
             newHabitacion = habitacionRepository.save(newHabitacion);
             return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
         } else {
@@ -41,7 +69,7 @@ public class HabitacionService {
     }
 
     // Read (GET)
-    public HabitacionDetailDTO findById(Long id) {
+    public HabitacionDetailDTO findByIdDTO(Long id) {
         Habitacion habitacion = habitacionRepository.findById(id).orElse(null);
 
         if (habitacion != null) {
@@ -76,8 +104,5 @@ public class HabitacionService {
         return modelMapper.map(habitacion, HabitacionDetailDTO.class);
     }
 
-    // Delete (DELETE)
-    public void deleteById(Long id) {
-        habitacionRepository.deleteById(id);
-    }
+
 }

@@ -12,10 +12,8 @@ import lombok.Setter;
 @Setter
 public class HabitacionResponseDTO {
     private Long id;
-
-    @NotNull
+    private Double precio;
     private String direccion;
-
-    @NotNull
     private Integer area;
+    private ArrendadorResponseDTO arrendador;
 }

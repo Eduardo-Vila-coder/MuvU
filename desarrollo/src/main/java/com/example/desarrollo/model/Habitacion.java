@@ -20,7 +20,7 @@ public class Habitacion {
     private Long id;
 
     private String direccion;
-    private double precio;
+    private Double precio;
     private Integer area;
 
     @ManyToOne(fetch = FetchType.EAGER)

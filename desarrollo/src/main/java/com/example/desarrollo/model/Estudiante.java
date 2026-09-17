@@ -23,8 +23,7 @@ public class Estudiante {
 
     private String nombre;
 
-    @Email
-    @Column(unique = true) private String correo;
+    private String correo;
     private String contrasena;
     private boolean verificado = false;
 
