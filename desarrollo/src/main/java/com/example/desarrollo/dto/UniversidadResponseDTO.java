@@ -14,6 +14,6 @@ public class UniversidadResponseDTO {
     private Long id;
     private String nombre;
     private String direccion;
-    private Long longitud;
-    private Long latitud;
+    private Double longitud;
+    private Double latitud;
 }
