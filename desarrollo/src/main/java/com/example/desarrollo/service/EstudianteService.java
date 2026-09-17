@@ -38,8 +38,12 @@ public class EstudianteService {
         if (universidad == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Universidad no encontrada");
         }
-        Estudiante estudiante = modelMapper.map(estudianteRequestDTO, Estudiante.class);
+        Estudiante estudiante = new Estudiante();
+        estudiante.setNombre(estudianteRequestDTO.getNombre());
+        estudiante.setCorreo(estudianteRequestDTO.getCorreo());
+        estudiante.setContrasena(estudianteRequestDTO.getContrasena());
         estudiante.setUniversidad(universidad);
+
         estudianteRepository.save(estudiante);
 
         EstudianteResponseDTO estudianteResponseDTO = modelMapper.map(estudiante, EstudianteResponseDTO.class);
@@ -72,12 +76,12 @@ public class EstudianteService {
     }
 
     // GET (Informacion relevante para Arrendador)
-    public Estudiante getById(Long id) {
+    public Estudiante findById(Long id) {
         return estudianteRepository.findById(id).orElse(null);
     }
 
     public EstudianteResponseDTO getPerfil(Long id) {
-        Estudiante estudiante = this.getById(id);
+        Estudiante estudiante = this.findById(id);
         if  (estudiante == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado");
         }

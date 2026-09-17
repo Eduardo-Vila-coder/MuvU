@@ -23,6 +23,5 @@ public class EstudianteRequestDTO {
     @NotNull
     private String contrasena;
 
-    @NotNull
-    private Universidad universidad;
+    private UniversidadConsultaDTO universidad;
 }

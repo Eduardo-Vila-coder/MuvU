@@ -13,6 +13,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ReservaRequestDTO {
     @NotNull private LocalDate fecha_fin;
-    private EstudianteConsultaDTO estudiante;
     private HabitacionConsultaDTO habitacion;
+    private EstudianteConsultaDTO estudiante;
 }
