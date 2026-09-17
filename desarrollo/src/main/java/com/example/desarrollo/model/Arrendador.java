@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +15,20 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@PrimaryKeyJoinColumn(name = "usuario_id")
-public class Arrendador extends Usuario {
+public class Arrendador {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Email
+    @Column(unique = true) private String correo;
+    private String contrasena;
+    private boolean verificado = false;
+
+
     private String dniFoto;
 
     @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Habitacion> habitaciones = new ArrayList<>();
 
-    public Arrendador(String nombre, String correo, String contrasena, String dniFoto) {
-        super(nombre, correo, contrasena);
-        this.dniFoto = dniFoto;
-    }
 }
