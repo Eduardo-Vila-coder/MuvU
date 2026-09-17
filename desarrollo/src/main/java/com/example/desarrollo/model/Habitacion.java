@@ -20,6 +20,8 @@ public class Habitacion {
     private Long id;
 
     private String direccion;
+    private Long longitud;
+    private Long latitud;
     private double precio;
     private Integer area;
 

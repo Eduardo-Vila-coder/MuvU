@@ -22,6 +22,9 @@ public class Universidad {
 
     private String direccion;
 
+    private Long longitud;
+    private Long latitud;
+
     @OneToMany(mappedBy = "universidad")
     private List<Estudiante> estudiantes;
 }
