@@ -20,40 +20,41 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
-//    public PaymentIntent procesarCobro(Double monto, String moneda) throws StripeException {
-//        // Stripe requiere el monto expresado en la unidad mínima de la moneda (centavos/céntimos)
-//        long montoEnCentavos = Math.round(monto * 100);
-//
-//        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-//                .setAmount(montoEnCentavos)
-//                .setCurrency(moneda.toLowerCase())
-//                .setAutomaticPaymentMethods(
-//                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-//                                .setEnabled(true)
-//                                .build()
-//                )
-//                .build();
-//
-//        return PaymentIntent.create(params);
-//    }
-    //esto espera que en el front end se llenen los datos..., por lo que entiendo
-
     public PaymentIntent procesarCobro(Double monto, String moneda) throws StripeException {
+        // Stripe requiere el monto expresado en la unidad mínima de la moneda (centavos/céntimos)
         long montoEnCentavos = Math.round(monto * 100);
 
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()//Se está construyendo, para el return
+        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()//construcción para el return
                 .setAmount(montoEnCentavos)
-                .setCurrency(moneda.toLowerCase()) //hasta acá creo que es entendible
-                .setPaymentMethod("pm_card_visa") // Tarjeta de prueba oficial de Stripe
-                .setConfirm(true)                 // Ejecuta el cobro inmediatamente
-                .setAutomaticPaymentMethods(//las 2 líneas de arriba simulan el pago con tarjeta
+                .setCurrency(moneda.toLowerCase())//hasta acá creo que es entendible
+                .setAutomaticPaymentMethods(
                         PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                                 .setEnabled(true)
-                                .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
                                 .build()
                 )
                 .build();
 
-        return PaymentIntent.create(params);//por lo que entiendo, acá se manda a la API de STRIPE para el pago
+        return PaymentIntent.create(params);
     }
+    //esto espera que en el front-end se llenen los datos bancarios
+
+// esto era para simular el pago con la parte de front-end ya implementada.
+//    public PaymentIntent procesarCobro(Double monto, String moneda) throws StripeException {
+//        long montoEnCentavos = Math.round(monto * 100);
+//
+//        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()//Se está construyendo, para el return
+//                .setAmount(montoEnCentavos)
+//                .setCurrency(moneda.toLowerCase())
+//                .setPaymentMethod("pm_card_visa") // Tarjeta de prueba oficial de Stripe
+//                .setConfirm(true)                 // Ejecuta el cobro inmediatamente
+//                .setAutomaticPaymentMethods(//las 2 líneas de arriba simulan el pago con tarjeta
+//                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+//                                .setEnabled(true)
+//                                .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+//                                .build()
+//                )
+//                .build();
+//
+//        return PaymentIntent.create(params);//por lo que entiendo, acá se manda a la API de STRIPE para el pago
+//    }
 }
