@@ -9,30 +9,38 @@ import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.Imagen;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ImagenRepository;
+import com.google.maps.model.LatLng;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class HabitacionService {
+
+    private final GoogleMapsService googleMapsService;
     private final HabitacionRepository habitacionRepository;
     private final ImagenRepository imagenRepository;
     private final ModelMapper modelMapper;
 
-    @Autowired
-    public HabitacionService(HabitacionRepository habitacionRepository, ImagenRepository imagenRepository, ModelMapper modelMapper) {
-        this.habitacionRepository = habitacionRepository;
-        this.imagenRepository = imagenRepository;
-        this.modelMapper = modelMapper;
-    }
-
     // Create (POST)
+    @Transactional
     public HabitacionResponseDTO save(HabitacionRequestDTO habitacionRequestDTO) {
         if (habitacionRequestDTO != null
-            && habitacionRequestDTO.getDireccion() != null && !habitacionRequestDTO.getDireccion().isEmpty()
-            && habitacionRequestDTO.getArea() != null
-            && habitacionRequestDTO.getArrendador() != null) {
+                && habitacionRequestDTO.getDireccion() != null && !habitacionRequestDTO.getDireccion().isEmpty()
+                && habitacionRequestDTO.getArea() != null
+                && habitacionRequestDTO.getArrendador() != null) {
+
             Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
+
+            // Obtenemos latitud y longitud a partir del texto de la dirección antes de guardar
+            if (newHabitacion.getDireccion() != null && !newHabitacion.getDireccion().isBlank()) {
+                LatLng coords = googleMapsService.obtenerCoordenadas(newHabitacion.getDireccion());
+                newHabitacion.setLatitud(coords.lat);
+                newHabitacion.setLongitud(coords.lng);
+            }
+
             newHabitacion = habitacionRepository.save(newHabitacion);
             return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
         } else {
@@ -51,9 +59,8 @@ public class HabitacionService {
         return null;
     }
 
-    // Update (PUT)
-
     // (PATCH)
+    @Transactional
     public HabitacionDetailDTO addImagen(Long habitacionId, Long imagenId) {
         Imagen imagen = imagenRepository.findById(imagenId).orElse(null);
 
@@ -64,19 +71,18 @@ public class HabitacionService {
         Habitacion habitacion = habitacionRepository.findById(habitacionId)
                 .orElseThrow(() -> new ResourceNotFoundException("No fue encontrada la habitacion con id: " + habitacionId));
 
-
         if (habitacion.getImagenes().contains(imagen)) {
             throw new ConflictException("La imagen con id: " + imagenId + " ya esta asociada a la habitacion con id: " + habitacionId);
         }
 
         habitacion.getImagenes().add(imagen);
-
         habitacion = habitacionRepository.save(habitacion);
 
         return modelMapper.map(habitacion, HabitacionDetailDTO.class);
     }
 
     // Delete (DELETE)
+    @Transactional
     public void deleteById(Long id) {
         habitacionRepository.deleteById(id);
     }

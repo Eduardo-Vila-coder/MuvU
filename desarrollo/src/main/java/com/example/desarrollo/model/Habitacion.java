@@ -20,8 +20,13 @@ public class Habitacion {
     private Long id;
 
     private String direccion;
-    private Double longitud;
+
+    @Column(nullable = true)
     private Double latitud;
+
+    @Column(nullable = true)
+    private Double longitud;
+
     private double precio;
     private Integer area;
 

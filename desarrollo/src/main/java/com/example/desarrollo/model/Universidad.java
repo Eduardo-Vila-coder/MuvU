@@ -22,8 +22,11 @@ public class Universidad {
 
     private String direccion;
 
-    private Double longitud;
+    @Column(nullable = true)
     private Double latitud;
+
+    @Column(nullable = true)
+    private Double longitud;
 
     @OneToMany(mappedBy = "universidad")
     private List<Estudiante> estudiantes;
