@@ -7,6 +7,8 @@ import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,19 @@ public class UniversidadService {
 
     public List<Universidad> findAll() {
         return universidadRepository.findAll();
+    }
+
+    public List<UniversidadResponseDTO> findAllDTO() {
+        return universidadRepository.findAll()
+                .stream()
+                .map(uni -> modelMapper.map(uni, UniversidadResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public UniversidadResponseDTO findByIdDTO(Long id) {
+        return universidadRepository.findById(id)
+                .map(uni -> modelMapper.map(uni, UniversidadResponseDTO.class))
+                .orElse(null);
     }
 
     @Transactional
