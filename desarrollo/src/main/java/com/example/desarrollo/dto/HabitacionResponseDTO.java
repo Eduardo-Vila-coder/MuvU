@@ -15,6 +15,8 @@ public class HabitacionResponseDTO {
 
     @NotNull
     private String direccion;
+    private Double longitud;
+    private Double latitud;
 
     @NotNull
     private Integer area;

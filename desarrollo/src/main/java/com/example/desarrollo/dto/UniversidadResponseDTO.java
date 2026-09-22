@@ -11,6 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UniversidadResponseDTO {
 
+    private Long id;
     private String nombre;
     private String direccion;
+    private Double longitud;
+    private Double latitud;
 }
