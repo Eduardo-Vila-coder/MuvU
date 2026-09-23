@@ -29,6 +29,7 @@ public class Habitacion {
 
     private double precio;
     private Integer area;
+    private Boolean esDestacada = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)
