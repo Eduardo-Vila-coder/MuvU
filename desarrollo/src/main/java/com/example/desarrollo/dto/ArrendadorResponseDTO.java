@@ -12,10 +12,6 @@ import lombok.Setter;
 @Setter
 public class ArrendadorResponseDTO {
     private Long id;
-
-    @NotNull
     private String nombre;
-
-    @NotNull
     private String correo;
 }
