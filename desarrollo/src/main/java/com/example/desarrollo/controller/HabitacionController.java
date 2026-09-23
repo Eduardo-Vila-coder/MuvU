@@ -5,28 +5,36 @@ import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.service.HabitacionService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/habitacion")
+@RequiredArgsConstructor
 public class HabitacionController {
-    private final HabitacionService habitacionService;
 
-    @Autowired
-    public HabitacionController(HabitacionService habitacionService) {
-        this.habitacionService = habitacionService;
-    }
+    private final HabitacionService habitacionService;
 
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
             @Valid @RequestBody HabitacionRequestDTO habitacionRequestDTO) {
         HabitacionResponseDTO savedHabitacion = habitacionService.save(habitacionRequestDTO);
-        return ResponseEntity.ok(savedHabitacion);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedHabitacion.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(savedHabitacion);
     }
 
-    // Para los clientes que quieren ver la habitacion
     @GetMapping("/{id}")
     public ResponseEntity<HabitacionDetailDTO> getHabitacionById(@PathVariable Long id) {
         HabitacionDetailDTO habitacionDetailDTO = habitacionService.findById(id);
@@ -38,16 +46,18 @@ public class HabitacionController {
         }
     }
 
-    // Para los arrendadores que quieran agregar imagenes a su habitacion
-    @PatchMapping("/{id}/add-imagen/{imagen_id}")
-    public ResponseEntity<HabitacionDetailDTO> addImagen(@PathVariable("id") Long id, @PathVariable("imagen_id") Long imagen_id) {
-        HabitacionDetailDTO habitacionDetailDTO = habitacionService.addImagen(id, imagen_id);
+    // Ruta RESTful mejorada: /habitacion/{id}/imagenes/{imagenId}
+    @PatchMapping("/{id}/imagenes/{imagenId}")
+    public ResponseEntity<HabitacionDetailDTO> addImagen(
+            @PathVariable Long id,
+            @PathVariable Long imagenId) {
+        HabitacionDetailDTO habitacionDetailDTO = habitacionService.addImagen(id, imagenId);
         return ResponseEntity.ok(habitacionDetailDTO);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable Long id) {
         habitacionService.deleteById(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

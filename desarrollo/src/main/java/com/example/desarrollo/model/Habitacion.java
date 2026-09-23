@@ -20,8 +20,16 @@ public class Habitacion {
     private Long id;
 
     private String direccion;
+
+    @Column(nullable = true)
+    private Double latitud;
+
+    @Column(nullable = true)
+    private Double longitud;
+
     private double precio;
     private Integer area;
+    private Boolean esDestacada = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)

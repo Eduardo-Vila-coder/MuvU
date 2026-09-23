@@ -12,10 +12,10 @@ import lombok.Setter;
 @Setter
 public class HabitacionResponseDTO {
     private Long id;
-
-    @NotNull
     private String direccion;
-
-    @NotNull
+    private Double longitud;
+    private Double latitud;
+    private Boolean esDestacada;
+    private Double distanciaKm;
     private Integer area;
 }
