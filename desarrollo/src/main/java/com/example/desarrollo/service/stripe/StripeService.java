@@ -27,6 +27,13 @@ public class StripeService {
                 .setAmount(montoEnCentavos)
                 .setCurrency(moneda.toLowerCase())//hasta acá creo que es entendible
                 // Guardamos el ID de la habitación en la metadata del cobro
+
+                //---------------------------------------------------------------
+                //Si quieren que se guarde en BD, uncomment las 2 líneas de abajo.
+                //---------------------------------------------------------------
+
+                //.setPaymentMethod("pm_card_visa") // Tarjeta de prueba oficial de Stripe
+                //.setConfirm(true)                 // Ejecuta el cobro inmediatamente
                 .putMetadata("habitacionId", String.valueOf(habitacionId))
                 .setAutomaticPaymentMethods(
                         PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
