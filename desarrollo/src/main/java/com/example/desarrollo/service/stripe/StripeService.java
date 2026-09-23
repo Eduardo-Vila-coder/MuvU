@@ -5,7 +5,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import jakarta.annotation.PostConstruct;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +19,15 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
-    public PaymentIntent procesarCobro(Double monto, String moneda) throws StripeException {
+    public PaymentIntent procesarCobro(Long habitacionId,Double monto, String moneda) throws StripeException {
         // Stripe requiere el monto expresado en la unidad mínima de la moneda (centavos/céntimos)
         long montoEnCentavos = Math.round(monto * 100);
 
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()//construcción para el return
                 .setAmount(montoEnCentavos)
                 .setCurrency(moneda.toLowerCase())//hasta acá creo que es entendible
+                // Guardamos el ID de la habitación en la metadata del cobro
+                .putMetadata("habitacionId", String.valueOf(habitacionId))
                 .setAutomaticPaymentMethods(
                         PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                                 .setEnabled(true)
