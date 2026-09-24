@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +46,12 @@ public class HabitacionService {
         }
 
         return null;
+    }
+
+    // Read all paginado (GET)
+    public Page<HabitacionResponseDTO> findAll(Pageable pageable) {
+        return habitacionRepository.findAll(pageable)
+                .map(h -> modelMapper.map(h, HabitacionResponseDTO.class));
     }
 
     // (PATCH)
