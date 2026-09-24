@@ -6,6 +6,7 @@ import com.example.desarrollo.model.Estudiante;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.UniversidadRepository;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,20 +20,12 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class EstudianteService {
     private final EstudianteRepository estudianteRepository;
     private final UniversidadRepository universidadRepository;
     private final ModelMapper modelMapper;
     private final CalificacionRepository calificacionRepository;
-
-    public EstudianteService(EstudianteRepository estudianteRepository,
-                             UniversidadRepository universidadRepository,
-                             ModelMapper modelMapper, CalificacionRepository calificacionRepository){
-        this.estudianteRepository = estudianteRepository;
-        this.universidadRepository = universidadRepository;
-        this.modelMapper = modelMapper;
-        this.calificacionRepository = calificacionRepository;
-    }
 
     // POST (Crear estudiante)
     public EstudianteResponseDTO createEstudiante(EstudianteRequestDTO estudianteRequestDTO){

@@ -18,22 +18,27 @@ import java.util.List;
 public class ReservaService {
     private final ReservaRepository reservaRepository;
     private final ModelMapper modelMapper;
+
     @Autowired
     public ReservaService(ReservaRepository reservaRepository, ModelMapper modelMapper){
         this.reservaRepository=reservaRepository;
         this.modelMapper=modelMapper;
     }
+
     public Reserva findById(Long id){
         return reservaRepository.findById(id).orElse(null);
     }
+
     public List<Reserva> findAll(){
         return reservaRepository.findAll();
     }
+
     public ReservaResponseDTO createReserva(ReservaRequestDTO reservaRequestDTO){
         Reserva newReserva=modelMapper.map(reservaRequestDTO, Reserva.class);
         newReserva= reservaRepository.save(newReserva);
         return modelMapper.map(newReserva,ReservaResponseDTO.class);
     }
+
     @Transactional
     public ReservaResponseDTO cancelReserva(Long id){
         Reserva reserva=reservaRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No existe reserva con el ID:"+id));
@@ -48,6 +53,7 @@ public class ReservaService {
         Reserva newReserva=reservaRepository.save(reserva);
         return modelMapper.map(newReserva,ReservaResponseDTO.class);
     }
+
     @Transactional
     public ReservaResponseDTO confirmReserva(Long id){
         Reserva reserva=reservaRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No existe reserva con el ID:"+id));
