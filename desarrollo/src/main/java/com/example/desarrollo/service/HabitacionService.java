@@ -120,28 +120,6 @@ public class HabitacionService {
                 .map(h -> modelMapper.map(h, HabitacionResponseDTO.class));
     }
 
-    // (PATCH)
-    @Transactional
-    public HabitacionDetailDTO addImagen(Long habitacionId, Long imagenId) {
-        Imagen imagen = imagenRepository.findById(imagenId).orElse(null);
-
-        if (imagen == null) {
-            throw new ResourceNotFoundException("No fue encontrada la imagen con id: " + imagenId);
-        }
-
-        Habitacion habitacion = habitacionRepository.findById(habitacionId)
-                .orElseThrow(() -> new ResourceNotFoundException("No fue encontrada la habitacion con id: " + habitacionId));
-
-        if (habitacion.getImagenes().contains(imagen)) {
-            throw new ConflictException("La imagen con id: " + imagenId + " ya esta asociada a la habitacion con id: " + habitacionId);
-        }
-
-        habitacion.getImagenes().add(imagen);
-        habitacion = habitacionRepository.save(habitacion);
-
-        return modelMapper.map(habitacion, HabitacionDetailDTO.class);
-    }
-
     // Delete (DELETE)
     @Transactional
     public void deleteById(Long id) {
