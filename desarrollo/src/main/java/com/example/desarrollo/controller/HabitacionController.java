@@ -23,11 +23,21 @@ public class HabitacionController {
 
     private final HabitacionService habitacionService;
 
+    // Nuevo Endpoint para buscar por cercanía y radio de universidad
+    @GetMapping("/cercanas")
+    public ResponseEntity<Page<HabitacionResponseDTO>> getHabitacionesCercanas(
+            @RequestParam Long universidadId,
+            @RequestParam(defaultValue = "5.0") Double radioKm,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(habitacionService.findCercanas(universidadId, radioKm, pageable));
+    }
+
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
             @Valid @RequestBody HabitacionRequestDTO habitacionRequestDTO) {
         HabitacionResponseDTO savedHabitacion = habitacionService.save(habitacionRequestDTO);
-
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(savedHabitacion.getId())
@@ -51,7 +61,6 @@ public class HabitacionController {
     public ResponseEntity<Page<HabitacionResponseDTO>> getAllHabitaciones(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        // Se le agrego el Sort.by("esDestacada").descending() para que salgan las que pagan primero, sino solo se quita
         Pageable pageable = PageRequest.of(page, size, Sort.by("esDestacada").descending());
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }

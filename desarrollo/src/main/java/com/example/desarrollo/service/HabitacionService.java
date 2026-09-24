@@ -8,16 +8,22 @@ import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.Imagen;
+import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.ArrendadorRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ImagenRepository;
+import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +35,59 @@ public class HabitacionService {
     private final ModelMapper modelMapper;
     private final ArrendadorRepository arrendadorRepository;
     private final UsuarioService usuarioService;
+    private final UniversidadRepository universidadRepository; // <-- Inyección añadida
+
+    // Búsqueda por cercanía, filtro de radio y ordenamiento
+    public Page<HabitacionResponseDTO> findCercanas(Long universidadId, Double radioKm, Pageable pageable) {
+        // 1. Obtener la universidad de referencia
+        Universidad universidad = universidadRepository.findById(universidadId)
+                .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrada con ID: " + universidadId));
+
+        // 2. Obtener todas las habitaciones
+        List<Habitacion> todas = habitacionRepository.findAll();
+
+        // 3. Mapear a DTO, calcular distancia Haversine, filtrar por radio y ordenar
+        List<HabitacionResponseDTO> filtradas = todas.stream()
+                .map(habitacion -> {
+                    double distancia = calcularHaversine(
+                            universidad.getLatitud(), universidad.getLongitud(),
+                            habitacion.getLatitud(), habitacion.getLongitud()
+                    );
+                    HabitacionResponseDTO dto = modelMapper.map(habitacion, HabitacionResponseDTO.class);
+                    dto.setDistanciaKm(Math.round(distancia * 100.0) / 100.0); // Redondeo a 2 decimales
+                    return dto;
+                })
+                .filter(dto -> dto.getDistanciaKm() <= radioKm)
+                // Ordenar: 1° Destacadas arriba (true antes que false), 2° Por menor distanciaKm
+                .sorted(Comparator.comparing(HabitacionResponseDTO::getEsDestacada, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(HabitacionResponseDTO::getDistanciaKm))
+                .toList();
+
+        // 4. Paginación manual de la lista filtrada
+        int inicio = (int) pageable.getOffset();
+        int fin = Math.min((inicio + pageable.getPageSize()), filtradas.size());
+
+        if (inicio > filtradas.size()) {
+            return new PageImpl<>(List.of(), pageable, filtradas.size());
+        }
+
+        List<HabitacionResponseDTO> sublista = filtradas.subList(inicio, fin);
+        return new PageImpl<>(sublista, pageable, filtradas.size());
+    }
+
+    // Métod0 privado para el cálculo matemático de Haversine
+    private double calcularHaversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radio aproximado de la Tierra en km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
 
     // Create (POST)
     @Transactional
@@ -37,7 +96,7 @@ public class HabitacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado"));
 
         Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
-        newHabitacion.setArrendador(yo);   // el dueño es quien deberia estar logueado para publicar
+        newHabitacion.setArrendador(yo);
 
         LatLng coords = googleMapsService.obtenerCoordenadas(newHabitacion.getDireccion());
         newHabitacion.setLatitud(coords.lat);
@@ -49,11 +108,9 @@ public class HabitacionService {
     // Read (GET)
     public HabitacionDetailDTO findById(Long id) {
         Habitacion habitacion = habitacionRepository.findById(id).orElse(null);
-
         if (habitacion != null) {
             return modelMapper.map(habitacion, HabitacionDetailDTO.class);
         }
-
         return null;
     }
 
