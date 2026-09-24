@@ -4,6 +4,7 @@ import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.EstudianteResponseDTO;
 import com.example.desarrollo.service.EstudianteService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +18,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/estudiantes")
+@RequiredArgsConstructor
 public class EstudianteController {
     private final EstudianteService estudianteService;
-
-    public EstudianteController(EstudianteService estudianteService) {
-        this.estudianteService = estudianteService;
-    }
 
     @PostMapping
     public ResponseEntity<EstudianteResponseDTO> createEstudiante(@Valid @RequestBody EstudianteRequestDTO dto) {
