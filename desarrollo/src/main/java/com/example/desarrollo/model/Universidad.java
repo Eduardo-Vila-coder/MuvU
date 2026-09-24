@@ -28,6 +28,6 @@ public class Universidad {
     @Column(nullable = true)
     private Double longitud;
 
-    @OneToMany(mappedBy = "universidad")
+    @OneToMany(mappedBy = "universidad", fetch = FetchType.EAGER)
     private List<Estudiante> estudiantes;
 }

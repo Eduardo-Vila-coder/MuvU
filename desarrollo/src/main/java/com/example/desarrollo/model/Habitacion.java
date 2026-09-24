@@ -44,7 +44,7 @@ public class Habitacion {
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
 
-    @OneToMany(mappedBy="receptor")
+    @OneToMany(mappedBy="receptor", fetch = FetchType.EAGER)
     private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
 
 }
