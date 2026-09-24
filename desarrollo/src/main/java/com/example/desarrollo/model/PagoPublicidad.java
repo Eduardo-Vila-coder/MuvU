@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class PagoPublicidad {
     @JoinColumn(name = "habitacion_id")
     private Habitacion habitacion;
 
+    @Positive
     private Double monto;
 
     @Enumerated(EnumType.STRING)
