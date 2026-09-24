@@ -56,15 +56,6 @@ public class HabitacionController {
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
 
-    // Ruta RESTful mejorada: /habitacion/{id}/imagenes/{imagenId}
-    @PatchMapping("/{id}/imagenes/{imagenId}")
-    public ResponseEntity<HabitacionDetailDTO> addImagen(
-            @PathVariable Long id,
-            @PathVariable Long imagenId) {
-        HabitacionDetailDTO habitacionDetailDTO = habitacionService.addImagen(id, imagenId);
-        return ResponseEntity.ok(habitacionDetailDTO);
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable Long id) {
         habitacionService.deleteById(id);
