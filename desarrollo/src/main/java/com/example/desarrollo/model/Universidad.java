@@ -1,6 +1,7 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,10 @@ public class Universidad {
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     private String nombre;
 
+    @NotBlank
     private String direccion;
 
     @Column(nullable = true)
