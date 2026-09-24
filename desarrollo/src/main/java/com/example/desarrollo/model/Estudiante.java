@@ -28,14 +28,13 @@ public class Estudiante {
     private String contrasena;
     private boolean verificado = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "universidad_id")
     private Universidad universidad;
 
-    @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Reserva> reservas = new ArrayList<>();
 
-
-    @OneToMany(mappedBy="autor")
-    private List<Calificacion> calificacionesDadas = new ArrayList<>();
+    @OneToMany(mappedBy="autor", fetch = FetchType.EAGER)
+    private List<Calificacion> calificacionesDadas = new ArrayList<>();     // modificar
 }

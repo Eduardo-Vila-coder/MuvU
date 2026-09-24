@@ -2,13 +2,16 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.PagoPublicidadRequestDTO;
 import com.example.desarrollo.dto.PagoPublicidadResponseDTO;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.PagoPublicidad;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.PagoPublicidadRepository;
 import com.example.desarrollo.service.stripe.StripeService;
+import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,38 +29,34 @@ public class PagoPublicidadService {
 
     @Transactional
     public PagoPublicidadResponseDTO registrarPago(PagoPublicidadRequestDTO requestDTO) {
-        // 1. Buscar la habitación asociada
+        // 1. Buscamos la habitación a destacar
         Habitacion habitacion = habitacionRepository.findById(requestDTO.getHabitacionId())
-                .orElseThrow(() -> new RuntimeException("Habitación no encontrada con ID: " + requestDTO.getHabitacionId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + requestDTO.getHabitacionId()));
 
-        // 2. Procesar el pago con Stripe
+        // 2. Procesamos el cobro en Stripe
         try {
-            stripeService.procesarCobro(requestDTO.getMonto(), "pen");
-        } catch (Exception e) {
-            throw new RuntimeException("Error al procesar el pago con la pasarela Stripe: " + e.getMessage());
+            stripeService.procesarCobro(habitacion.getId(), requestDTO.getMonto(), "usd");
+        } catch (StripeException e) {
+            throw new RuntimeException("Error al procesar el pago en Stripe: " + e.getMessage());
         }
 
-        // 3. Instanciar entidad y asignar fechas según la regla de negocio
-        PagoPublicidad pago = new PagoPublicidad();
+        // 3. Activamos el destacado en la habitación
+        habitacion.setEsDestacada(true);
+        habitacionRepository.save(habitacion);
+
+        // 4. Creamos y guardamos el registro de PagoPublicidad con sus fechas calculadas
+        PagoPublicidad pago = modelMapper.map(requestDTO, PagoPublicidad.class);
         pago.setHabitacion(habitacion);
-        pago.setMonto(requestDTO.getMonto());
-        pago.setMetodoPago(requestDTO.getMetodoDePago());
 
+        // --- Calculamos las fechas ---
         LocalDate fechaInicio = LocalDate.now();
-        LocalDate fechaFin = calcularFechaFin(fechaInicio, requestDTO.getMonto());
-
         pago.setFechaInicio(fechaInicio);
-        pago.setFechaFin(fechaFin);
+        pago.setFechaFin(calcularFechaFin(fechaInicio, requestDTO.getMonto()));
+        // ---------------------------------------------
 
-        // 4. Guardar en Base de Datos
-        PagoPublicidad pagoGuardado = pagoPublicidadRepository.save(pago);
+        pago = pagoPublicidadRepository.save(pago);
 
-        // 5. Mapear y responder con ResponseDTO
-        PagoPublicidadResponseDTO responseDTO = modelMapper.map(pagoGuardado, PagoPublicidadResponseDTO.class);
-        responseDTO.setHabitacionId(habitacion.getId());
-        responseDTO.setMetodoDePago(pagoGuardado.getMetodoPago()); // <-- Asignación explícita
-
-        return responseDTO;
+        return modelMapper.map(pago, PagoPublicidadResponseDTO.class);
     }
 
     public List<PagoPublicidadResponseDTO> listarTodos() {
@@ -81,6 +80,22 @@ public class PagoPublicidadService {
             return fechaInicio.plusDays(60);
         } else {
             throw new IllegalArgumentException("Monto no permitido. Solo son 2 opciones disponibles");
+        }
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?") // Se ejecuta todos los días a medianoche
+    @Transactional
+    public void desactivarPublicidadesVencidas() {
+        List<PagoPublicidad> pagosVencidos = pagoPublicidadRepository.findAll().stream()
+                .filter(p -> p.getFechaFin() != null && LocalDate.now().isAfter(p.getFechaFin()))
+                .toList();
+
+        for (PagoPublicidad pago : pagosVencidos) {
+            Habitacion habitacion = pago.getHabitacion();
+            if (habitacion != null && Boolean.TRUE.equals(habitacion.getEsDestacada())) {
+                habitacion.setEsDestacada(false);
+                habitacionRepository.save(habitacion);
+            }
         }
     }
 }

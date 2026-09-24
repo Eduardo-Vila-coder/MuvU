@@ -25,10 +25,12 @@ public class Arrendador {
     private String contrasena;
     private boolean verificado = false;
 
-
+    private String nombre;
     private String dniFoto;
 
     @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Habitacion> habitaciones = new ArrayList<>();
+
+    // Falta relacion con Calificacion
 
 }

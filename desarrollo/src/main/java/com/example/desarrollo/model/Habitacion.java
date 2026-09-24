@@ -29,6 +29,7 @@ public class Habitacion {
 
     private double precio;
     private Integer area;
+    private Boolean esDestacada = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)
@@ -43,7 +44,7 @@ public class Habitacion {
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
 
-    @OneToMany(mappedBy="receptor")
+    @OneToMany(mappedBy="receptor", fetch = FetchType.EAGER)
     private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
 
 }
