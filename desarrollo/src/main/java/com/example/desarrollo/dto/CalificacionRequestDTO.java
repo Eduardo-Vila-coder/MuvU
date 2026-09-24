@@ -27,8 +27,5 @@ public class CalificacionRequestDTO {
     private Long reservaId;
 
     @NotNull
-    private Long autorId;
-
-    @NotNull
     private Long receptorId;
 }

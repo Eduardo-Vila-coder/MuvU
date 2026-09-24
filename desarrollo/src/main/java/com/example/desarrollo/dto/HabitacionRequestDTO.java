@@ -27,7 +27,4 @@ public class HabitacionRequestDTO {
     @Positive // para que el area sea positiva
     private Integer area;
 
-    @NotNull
-    @Valid // para validar el arrendador
-    private Arrendador arrendador;
 }

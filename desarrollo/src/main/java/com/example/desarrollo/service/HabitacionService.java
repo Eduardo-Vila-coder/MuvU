@@ -5,8 +5,10 @@ import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
+import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.Imagen;
+import com.example.desarrollo.repository.ArrendadorRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ImagenRepository;
 import com.google.maps.model.LatLng;
@@ -25,11 +27,18 @@ public class HabitacionService {
     private final HabitacionRepository habitacionRepository;
     private final ImagenRepository imagenRepository;
     private final ModelMapper modelMapper;
+    private final ArrendadorRepository arrendadorRepository;
+    private final UsuarioService usuarioService;
 
     // Create (POST)
     @Transactional
     public HabitacionResponseDTO save(HabitacionRequestDTO habitacionRequestDTO) {
+        Arrendador yo = arrendadorRepository.findById(usuarioService.getIdUsuarioActual())
+                .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado"));
+
         Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
+        newHabitacion.setArrendador(yo);   // el dueño es quien deberia estar logueado para publicar
+
         LatLng coords = googleMapsService.obtenerCoordenadas(newHabitacion.getDireccion());
         newHabitacion.setLatitud(coords.lat);
         newHabitacion.setLongitud(coords.lng);

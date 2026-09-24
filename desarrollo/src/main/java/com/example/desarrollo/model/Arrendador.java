@@ -11,21 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
 @Getter
 @Setter
-@AllArgsConstructor
-public class Arrendador {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@NoArgsConstructor
 
-    @Email
-    @Column(unique = true) private String correo;
-    private String contrasena;
-    private boolean verificado = false;
+public class Arrendador extends Usuario{
 
-    private String nombre;
     private String dniFoto;
 
     @OneToMany(mappedBy = "arrendador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

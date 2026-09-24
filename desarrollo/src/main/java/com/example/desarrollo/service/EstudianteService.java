@@ -2,11 +2,13 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.EstudianteResponseDTO;
+import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Estudiante;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.UniversidadRepository;
+import com.example.desarrollo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -27,16 +29,7 @@ public class EstudianteService {
     private final UniversidadRepository universidadRepository;
     private final ModelMapper modelMapper;
     private final CalificacionRepository calificacionRepository;
-
-    // POST (Crear estudiante)
-    public EstudianteResponseDTO createEstudiante(EstudianteRequestDTO estudianteRequestDTO){
-        Universidad universidad = universidadRepository.findById(estudianteRequestDTO.getUniversidadId())
-                .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrada")); // ResponseStatusException(HttpStatus.NOT_FOUND, "Universidad no encontrada")
-        Estudiante estudiante = modelMapper.map(estudianteRequestDTO, Estudiante.class);
-        estudiante.setUniversidad(universidad);
-
-        return modelMapper.map(estudianteRepository.save(estudiante), EstudianteResponseDTO.class);
-    }
+    private final UsuarioRepository usuarioRepository;
 
     // PUT (Actualizar estudiante)
     public EstudianteResponseDTO getById(Long id) {
@@ -59,6 +52,12 @@ public class EstudianteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrado"));
 
         estudiante.setNombre(dto.getNombre());
+
+        if (!estudiante.getCorreo().equals(dto.getCorreo())
+                && usuarioRepository.existsByCorreo(dto.getCorreo())) {
+            throw new ConflictException("El correo ya está en uso");
+        }
+
         estudiante.setCorreo(dto.getCorreo());
         estudiante.setUniversidad(universidad);
 

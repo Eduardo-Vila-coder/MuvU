@@ -18,12 +18,6 @@ public class ArrendadorController {
         this.arrendadorService = arrendadorService;
     }
 
-    @PostMapping
-    public ResponseEntity<ArrendadorResponseDTO> createArrendador(
-            @Valid @RequestBody ArrendadorRequestDTO arrendadorRequestDTO) {
-        ArrendadorResponseDTO savedArrendador = arrendadorService.save(arrendadorRequestDTO);
-        return ResponseEntity.ok(savedArrendador);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ArrendadorResponseDTO> getArrendadorById(@PathVariable Long id) {

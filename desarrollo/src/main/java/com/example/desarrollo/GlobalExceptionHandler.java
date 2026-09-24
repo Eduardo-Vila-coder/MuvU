@@ -1,13 +1,19 @@
-package com.example.desarrollo.exceptions;
+package com.example.desarrollo;
 
+import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.ErrorDetails;
+import com.example.desarrollo.exceptions.ReservaInvalidStateException;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
@@ -54,5 +60,21 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ProblemDetail handlerBadCredentials(BadCredentialsException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
+        p.setTitle("Credenciales inválidas");
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handlerAccessDenied(AccessDeniedException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        p.setTitle("Acceso denegado");
+        p.setProperty("timestamp", Instant.now());
+        return p;
     }
 }

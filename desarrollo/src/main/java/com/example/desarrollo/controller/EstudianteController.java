@@ -22,10 +22,6 @@ import java.util.List;
 public class EstudianteController {
     private final EstudianteService estudianteService;
 
-    @PostMapping
-    public ResponseEntity<EstudianteResponseDTO> createEstudiante(@Valid @RequestBody EstudianteRequestDTO dto) {
-        return new ResponseEntity<>(estudianteService.createEstudiante(dto), HttpStatus.CREATED);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<EstudianteResponseDTO> getById(@PathVariable Long id) {
