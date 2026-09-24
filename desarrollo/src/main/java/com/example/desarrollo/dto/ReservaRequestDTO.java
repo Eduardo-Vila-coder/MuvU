@@ -14,4 +14,7 @@ import java.time.LocalDate;
 public class ReservaRequestDTO {
     @NotNull
     private LocalDate fecha_fin;
+
+    @NotNull
+    private Long habitacionId;
 }

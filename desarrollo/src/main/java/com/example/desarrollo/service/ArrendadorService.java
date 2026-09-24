@@ -19,14 +19,6 @@ public class ArrendadorService {
         this.modelMapper = modelMapper;
     }
 
-    // Create (POST)
-    // cambios que se hara es busqueda de duplicados
-    public ArrendadorResponseDTO save(ArrendadorRequestDTO arrendadorRequestDTO) {
-        Arrendador newArrendador = modelMapper.map(arrendadorRequestDTO, Arrendador.class);
-        newArrendador = arrendadorRepository.save(newArrendador);
-        return modelMapper.map(newArrendador, ArrendadorResponseDTO.class);
-    }
-
     // Read (GET)
     public ArrendadorResponseDTO findById(Long id) {
         Arrendador arrendador = arrendadorRepository.findById(id).orElse(null);
@@ -46,4 +38,6 @@ public class ArrendadorService {
     public void deleteById(Long id) {
         arrendadorRepository.deleteById(id);
     }
+
+
 }

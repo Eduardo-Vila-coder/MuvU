@@ -26,14 +26,17 @@ public class CalificacionService {
     private final EstudianteRepository estudianteRepository;
     private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
+    private final UsuarioService usuarioService;
 
 
     public CalificacionResponseDTO create(CalificacionRequestDTO dto) {
         Reserva reserva = reservaRepository.findById(dto.getReservaId())
                 .orElseThrow(() -> new ResourceNotFoundException("No existe reserva con el ID: " + dto.getReservaId()));
 
-        Estudiante autor = estudianteRepository.findById(dto.getAutorId())
-                .orElseThrow(() -> new ResourceNotFoundException("No existe estudiante con el ID: " + dto.getAutorId()));
+        Long miId = usuarioService.getIdUsuarioActual();
+        Estudiante autor = estudianteRepository.findById(miId)
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
+
 
         if (reserva.getEstudiante() == null || !reserva.getEstudiante().getId().equals(autor.getId())) {
             throw new IllegalArgumentException("El estudiante con ID: " + autor.getId()
@@ -58,6 +61,7 @@ public class CalificacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("La habitacion a calificar no existe"));
         newCalificacion.setReceptor(habitacion);
 
+        newCalificacion = calificacionRepository.save(newCalificacion);
         return modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
     }
 

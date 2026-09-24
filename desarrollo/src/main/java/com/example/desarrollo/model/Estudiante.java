@@ -1,7 +1,6 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,20 +13,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 
-public class Estudiante {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String nombre;
-
-    @Email
-    @Column(unique = true) private String correo;
-    private String contrasena;
-    private boolean verificado = false;
-
+public class Estudiante extends Usuario {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "universidad_id")
     private Universidad universidad;
