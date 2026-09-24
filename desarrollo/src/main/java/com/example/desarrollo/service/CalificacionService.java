@@ -5,15 +5,13 @@ import com.example.desarrollo.dto.CalificacionResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
-import com.example.desarrollo.model.Calificacion;
-import com.example.desarrollo.model.Estado;
-import com.example.desarrollo.model.Estudiante;
-import com.example.desarrollo.model.Reserva;
+import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.CalificacionRepository;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +22,7 @@ import java.util.List;
 public class CalificacionService {
 
     private final CalificacionRepository calificacionRepository;
+    private final ModelMapper modelMapper;
     private final EstudianteRepository estudianteRepository;
     private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
@@ -49,20 +48,23 @@ public class CalificacionService {
             throw new ConflictException("La reserva con ID: " + reserva.getId() + " ya fue calificada");
         }
 
-        Calificacion calificacion = new Calificacion();
-        calificacion.setPuntuacion(dto.getPuntuacion());
-        calificacion.setDescripcion(dto.getDescripcion());
-        calificacion.setAutor(autor);
-        calificacion.setReserva(reserva);
-        calificacion.setReceptor(reserva.getHabitacion()); // la habitacion sale de la reserva, no del request
+        Calificacion newCalificacion = modelMapper.map(dto, Calificacion.class);
 
-        return toResponseDTO(calificacionRepository.save(calificacion));
+        newCalificacion.setReserva(reserva);
+
+        newCalificacion.setAutor(autor);
+
+        Habitacion habitacion = habitacionRepository.findById(dto.getReceptorId())
+                .orElseThrow(() -> new ResourceNotFoundException("La habitacion a calificar no existe"));
+        newCalificacion.setReceptor(habitacion);
+
+        return modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
     }
 
     public CalificacionResponseDTO findById(Long id) {
         Calificacion calificacion = calificacionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe calificacion con el ID: " + id));
-        return toResponseDTO(calificacion);
+        return modelMapper.map(calificacion, CalificacionResponseDTO.class);
     }
 
     public List<CalificacionResponseDTO> findByHabitacion(Long habitacionId) {
@@ -92,14 +94,6 @@ public class CalificacionService {
     }
 
     private CalificacionResponseDTO toResponseDTO(Calificacion c) {
-        return new CalificacionResponseDTO(
-                c.getId(),
-                c.getPuntuacion(),
-                c.getDescripcion(),
-                c.getAutor().getId(),
-                c.getAutor().getNombre(),
-                c.getReceptor().getId(),
-                c.getReserva().getId()
-        );
+        return modelMapper.map(c, CalificacionResponseDTO.class);
     }
 }
