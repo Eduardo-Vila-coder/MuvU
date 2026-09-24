@@ -1,6 +1,9 @@
 package com.example.desarrollo.dto;
 
 import com.example.desarrollo.model.MetodoPago;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,5 +25,6 @@ public class PagoPublicidadRequestDTO {
     private Double monto;
 
     @NotNull(message = "El método de pago es obligatorio")
+    @Enumerated(EnumType.STRING) // para el enum
     private MetodoPago metodoDePago;
 }
