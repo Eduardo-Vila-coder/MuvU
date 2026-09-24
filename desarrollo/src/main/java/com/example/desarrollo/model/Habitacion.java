@@ -40,7 +40,7 @@ public class Habitacion {
     @Positive
     private Integer area;
 
-    private boolean esDestacada = false; // Boolean
+    private Boolean esDestacada = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)
