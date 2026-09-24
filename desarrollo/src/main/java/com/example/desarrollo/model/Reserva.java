@@ -22,11 +22,11 @@ public class Reserva {
     @Column(name = "estado", nullable = false)
     private Estado estado;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "estudiante_id")
     private Estudiante estudiante;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "habitacion_id", nullable = false)
     private Habitacion habitacion;
 
