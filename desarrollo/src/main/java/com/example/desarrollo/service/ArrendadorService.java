@@ -20,18 +20,11 @@ public class ArrendadorService {
     }
 
     // Create (POST)
+    // cambios que se hara es busqueda de duplicados
     public ArrendadorResponseDTO save(ArrendadorRequestDTO arrendadorRequestDTO) {
-        if (arrendadorRequestDTO != null
-            && arrendadorRequestDTO.getNombre() != null && !arrendadorRequestDTO.getNombre().isEmpty()
-            && arrendadorRequestDTO.getCorreo() != null && !arrendadorRequestDTO.getCorreo().isEmpty()
-            && arrendadorRequestDTO.getContrasena() != null && !arrendadorRequestDTO.getContrasena().isEmpty()) {
-
-            Arrendador newArrendador = modelMapper.map(arrendadorRequestDTO, Arrendador.class);
-            newArrendador = arrendadorRepository.save(newArrendador);
-            return modelMapper.map(newArrendador, ArrendadorResponseDTO.class);
-        } else {
-            throw new IllegalArgumentException("El nombre, correo o constrasena de un Arrendador no pueden ser nulos ni vacios");
-        }
+        Arrendador newArrendador = modelMapper.map(arrendadorRequestDTO, Arrendador.class);
+        newArrendador = arrendadorRepository.save(newArrendador);
+        return modelMapper.map(newArrendador, ArrendadorResponseDTO.class);
     }
 
     // Read (GET)
