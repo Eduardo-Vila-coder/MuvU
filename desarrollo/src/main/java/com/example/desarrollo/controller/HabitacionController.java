@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,6 +45,15 @@ public class HabitacionController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<HabitacionResponseDTO>> getAllHabitaciones(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        // Se le agrego el Sort.by("esDestacada").descending() para que salgan las que pagan primero, sino solo se quita
+        Pageable pageable = PageRequest.of(page, size, Sort.by("esDestacada").descending());
+        return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
 
     // Ruta RESTful mejorada: /habitacion/{id}/imagenes/{imagenId}
