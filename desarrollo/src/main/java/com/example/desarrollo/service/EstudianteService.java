@@ -2,6 +2,7 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.EstudianteResponseDTO;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Estudiante;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.EstudianteRepository;
@@ -37,7 +38,7 @@ public class EstudianteService {
     // POST (Crear estudiante)
     public EstudianteResponseDTO createEstudiante(EstudianteRequestDTO estudianteRequestDTO){
         Universidad universidad = universidadRepository.findById(estudianteRequestDTO.getUniversidadId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Universidad no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrada")); // ResponseStatusException(HttpStatus.NOT_FOUND, "Universidad no encontrada")
         Estudiante estudiante = modelMapper.map(estudianteRequestDTO, Estudiante.class);
         estudiante.setUniversidad(universidad);
 
@@ -47,9 +48,8 @@ public class EstudianteService {
     // PUT (Actualizar estudiante)
     public EstudianteResponseDTO getById(Long id) {
         Estudiante estudiante = estudianteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
+// ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado")
         return modelMapper.map(estudiante, EstudianteResponseDTO.class);
     }
 
@@ -62,13 +62,11 @@ public class EstudianteService {
     // PUT (Actualizar estudiante [cambio de universidad])
     public EstudianteResponseDTO updateEstudiante(Long id, EstudianteUpdateRequestDTO dto) {
         Estudiante estudiante = estudianteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
+// ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado")
         Universidad universidad = universidadRepository.findById(dto.getUniversidadId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Universidad no encontrada"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrado"));
+//ResponseStatusException(HttpStatus.NOT_FOUND, "Universidad no encontrada")
         estudiante.setNombre(dto.getNombre());
         estudiante.setCorreo(dto.getCorreo());
         estudiante.setUniversidad(universidad);
@@ -79,9 +77,8 @@ public class EstudianteService {
     // GET (Informacion relevante para Arrendador)
     public EstudiantePerfilDTO getPerfil(Long id) {
         Estudiante estudiante = estudianteRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Estudiante no encontrado"));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
+// ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado")
         EstudiantePerfilDTO perfil = modelMapper.map(estudiante, EstudiantePerfilDTO.class);
         perfil.setPuntuacionPromedio(calificacionRepository.findPromedioByReceptorId(id));
         perfil.setTotalCalificaciones(calificacionRepository.countByReceptorId(id));
@@ -92,7 +89,8 @@ public class EstudianteService {
     // DELETE (Eliminar estudiante)
     public void delete(Long id) {
         if (!estudianteRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado");
+            throw new ResourceNotFoundException("Estudiante no encontrado");
+            // ResponseStatusException(HttpStatus.NOT_FOUND, "Estudiante no encontrado")
         }
         estudianteRepository.deleteById(id);
     }

@@ -22,7 +22,7 @@ public class PagoPublicidadRequestDTO {
 
     @NotNull(message = "El monto es obligatorio")
     @Positive(message = "El monto debe ser mayor a cero")
-    private Double monto;
+    private double monto;
 
     @NotNull(message = "El método de pago es obligatorio")
     @Enumerated(EnumType.STRING) // para el enum

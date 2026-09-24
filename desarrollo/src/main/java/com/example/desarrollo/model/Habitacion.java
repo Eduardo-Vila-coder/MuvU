@@ -1,10 +1,14 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,20 +23,28 @@ public class Habitacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     private String direccion;
 
     @Column(nullable = true)
-    private Double latitud;
+    @Positive
+    private double latitud; // Double
 
     @Column(nullable = true)
-    private Double longitud;
+    @Positive
+    private double longitud; // Double
 
-    private double precio;
+    @Positive
+    private double precio; // Double
+
+    @Positive
     private Integer area;
-    private Boolean esDestacada = false;
+
+    private boolean esDestacada = false; // Boolean
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "arrendador_id", nullable = false)
+    @Valid
     private Arrendador arrendador;
 
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)

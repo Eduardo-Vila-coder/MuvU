@@ -27,7 +27,7 @@ public class HabitacionService {
     // Create (POST)
     @Transactional
     public HabitacionResponseDTO save(HabitacionRequestDTO habitacionRequestDTO) {
-        if (habitacionRequestDTO != null
+        /*if (habitacionRequestDTO != null
                 && habitacionRequestDTO.getDireccion() != null && !habitacionRequestDTO.getDireccion().isEmpty()
                 && habitacionRequestDTO.getArea() != null
                 && habitacionRequestDTO.getArrendador() != null) {
@@ -46,6 +46,15 @@ public class HabitacionService {
         } else {
             throw new IllegalArgumentException("La direccion, el area y el arrendador de una Habitacion no pueden ser nulos ni vacios");
         }
+        newHabitacion = habitacionRepository.save(newHabitacion);
+        return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
+        */
+        Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
+        LatLng coords = googleMapsService.obtenerCoordenadas(newHabitacion.getDireccion());
+        newHabitacion.setLatitud(coords.lat);
+        newHabitacion.setLongitud(coords.lng);
+        newHabitacion = habitacionRepository.save(newHabitacion);
+        return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
     }
 
     // Read (GET)
