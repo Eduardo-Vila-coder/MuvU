@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.dto.ImagenRequestDTO;
 import com.example.desarrollo.dto.ImagenResponseDTO;
 import com.example.desarrollo.exceptions.ForbiddenException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImagenService {
@@ -33,6 +35,7 @@ public class ImagenService {
         habitacion.agregarImagen(imagen);
 
         imagen = imagenRepository.save(imagen);
+        log.info("Imagen {} agregada a la habitación {}", imagen.getId(), habitacionId);
         return toDTO(imagen, habitacionId);
     }
 
@@ -53,6 +56,7 @@ public class ImagenService {
         Habitacion habitacion = imagen.getHabitacion();
         validarDueno(habitacion);
         habitacion.quitarImagen(imagen);
+        log.info("Imagen {} eliminada de la habitación {}", imagenId, habitacion.getId());
     }
 
     // ---------- helpers ----------
@@ -65,6 +69,7 @@ public class ImagenService {
     private void validarDueno(Habitacion habitacion) {
         Long miId = usuarioService.getIdUsuarioActual();
         if (!habitacion.getArrendador().getId().equals(miId)) {
+            log.warn("Usuario {} intentó modificar imágenes de la habitación {}", miId, habitacion.getId());
             throw new ForbiddenException("Solo el dueño de la habitación puede modificar sus imágenes");
         }
     }

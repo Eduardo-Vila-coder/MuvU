@@ -1,6 +1,8 @@
 package com.example.desarrollo.service;
 
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
+import com.example.desarrollo.dto.ArrendadorUpdateRequestDTO;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Calificacion;
 import com.example.desarrollo.repository.ArrendadorRepository;
@@ -20,6 +22,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +45,7 @@ class ArrendadorServiceTest {
     void setUp() {
         arrendador = new Arrendador();
         arrendador.setId(2L);
-        when(arrendadorRepository.findById(2L)).thenReturn(Optional.of(arrendador));
+        lenient().when(arrendadorRepository.findById(2L)).thenReturn(Optional.of(arrendador));
     }
 
     @Test
@@ -80,6 +84,39 @@ class ArrendadorServiceTest {
         arrendadorService.actualizarCantidadHabitaciones(2L);
 
         assertEquals(3L, arrendador.getCantidadHabitaciones());
+    }
+
+    @Test
+    void findById_inexistente_lanzaNotFound() {
+        when(arrendadorRepository.findById(9L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> arrendadorService.findById(9L));
+    }
+
+    @Test
+    void update_cambiaNombreYFotoDelDni() {
+        arrendadorService.update(2L, new ArrendadorUpdateRequestDTO("Rosa Quispe", "https://muvu.com/dni.jpg"));
+
+        verify(usuarioService).validarQueSoyYo(2L);
+        assertEquals("Rosa Quispe", arrendador.getNombre());
+        assertEquals("https://muvu.com/dni.jpg", arrendador.getDniFoto());
+    }
+
+    @Test
+    void deleteById_existente_loBorra() {
+        when(arrendadorRepository.existsById(2L)).thenReturn(true);
+
+        arrendadorService.deleteById(2L);
+
+        verify(arrendadorRepository).deleteById(2L);
+    }
+
+    @Test
+    void deleteById_inexistente_lanzaNotFound() {
+        when(arrendadorRepository.existsById(9L)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> arrendadorService.deleteById(9L));
+        verify(arrendadorRepository, never()).deleteById(any());
     }
 
     private Calificacion calificacion(int puntuacion) {

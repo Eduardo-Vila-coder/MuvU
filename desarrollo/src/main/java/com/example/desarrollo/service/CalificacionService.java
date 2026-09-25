@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.ActualizacionPromedioEvent;
 import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalificacionService implements ApplicationEventPublisherAware {
@@ -73,6 +75,8 @@ public class CalificacionService implements ApplicationEventPublisherAware {
         Habitacion habitacion = reserva.getHabitacion();
         newCalificacion.setReceptor(habitacion);
         newCalificacion = calificacionRepository.save(newCalificacion);
+        log.info("Calificación {} creada por el estudiante {} para la habitación {}",
+                newCalificacion.getId(), autor.getId(), habitacion.getId());
 
         publisher.publishEvent(new ActualizacionPromedioEvent(this, habitacion.getArrendador().getId()));
 
@@ -111,6 +115,7 @@ public class CalificacionService implements ApplicationEventPublisherAware {
 
         usuarioService.validarQueSoyYo(calificacion.getAutor().getId());
         calificacionRepository.delete(calificacion);
+        log.info("Calificación {} eliminada", id);
 
         publisher.publishEvent(new ActualizacionPromedioEvent(this, calificacion.getReceptor().getArrendador().getId()));
     }

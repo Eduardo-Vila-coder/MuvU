@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
     // Todas las excepciones propias (NotFound, Conflict, Forbidden, InvalidOperation, ExternalService...): usan su propio status
     @ExceptionHandler(MuvuException.class)
     public ResponseEntity<ErrorResponseDTO> handleMuvu(MuvuException ex, HttpServletRequest request) {
+        log.warn("{} {} -> {}: {}", request.getMethod(), request.getRequestURI(), ex.getStatus().value(), ex.getMessage());
         return build(ex.getStatus(), ex.getMessage(), request, null);
     }
 
@@ -73,6 +74,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponseDTO> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        log.warn("Inicio de sesión fallido en {}", request.getRequestURI());
         return build(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos", request, null);
     }
 
@@ -85,6 +87,7 @@ public class GlobalExceptionHandler {
     // AccessDeniedException de Spring Security (por ejemplo, al fallar un @PreAuthorize)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Acceso denegado a {} {}", request.getMethod(), request.getRequestURI());
         return build(HttpStatus.FORBIDDEN, "No tienes permisos para realizar esta acción", request, null);
     }
 

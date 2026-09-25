@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.PagoPublicidadRequestDTO;
 import com.example.desarrollo.dto.PagoPublicidadResponseDTO;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PagoPublicidadService {
@@ -54,6 +56,7 @@ public class PagoPublicidadService {
         try {
             stripeService.procesarCobro(habitacion.getId(), requestDTO.getMonto(), "usd");
         } catch (StripeException e) {
+            log.error("Stripe rechazó el cobro de la habitación {}: {}", habitacion.getId(), e.getMessage());
             throw new PaymentException("Error al procesar el pago en Stripe: " + e.getMessage(), e);
         }
 
@@ -71,6 +74,7 @@ public class PagoPublicidadService {
         pago.setFechaFin(fechaFin);
 
         pago = pagoPublicidadRepository.save(pago);
+        log.info("Pago {} registrado: habitación {} destacada hasta {}", pago.getId(), habitacion.getId(), fechaFin);
 
         Arrendador arrendador = habitacion.getArrendador();
         publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(arrendador.getCorreo(),
@@ -95,6 +99,7 @@ public class PagoPublicidadService {
         } else if (Double.compare(monto, 54.0) == 0) {
             return fechaInicio.plusDays(60);
         } else {
+            log.warn("Monto de publicidad no permitido: {}", monto);
             throw new InvalidOperationException("Monto no permitido. Solo son 2 opciones disponibles");
         }
     }
@@ -109,6 +114,7 @@ public class PagoPublicidadService {
             if (Boolean.TRUE.equals(habitacion.getEsDestacada())) {
                 habitacion.setEsDestacada(false);
                 habitacionRepository.save(habitacion);
+                log.info("Publicidad vencida: la habitación {} dejó de estar destacada", habitacion.getId());
             }
         }
     }

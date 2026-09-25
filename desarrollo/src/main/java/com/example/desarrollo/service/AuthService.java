@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -47,6 +49,7 @@ public class AuthService {
         e.setUniversidad(uni);
 
         estudianteRepository.save(e);
+        log.info("Estudiante {} registrado en la universidad {}", e.getId(), uni.getId());
         enviarBienvenida(e, "Ya puedes buscar y reservar habitaciones cerca de tu universidad.");
         return new TokenResponseDTO(jwtService.generateToken(e), e.getRol().name(), e.getId());
     }
@@ -62,6 +65,7 @@ public class AuthService {
         a.setRol(Rol.ARRENDADOR);
 
         arrendadorRepository.save(a);
+        log.info("Arrendador {} registrado, pendiente de verificación", a.getId());
         enviarBienvenida(a, "Un administrador revisará tu cuenta; cuando esté verificada podrás publicar tus habitaciones.");
         return new TokenResponseDTO(jwtService.generateToken(a), a.getRol().name(), a.getId());
     }
@@ -72,6 +76,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(dto.getCorreo(), dto.getContrasena()));
 
         Usuario u = usuarioRepository.findByCorreo(dto.getCorreo()).orElseThrow();
+        log.info("Usuario {} inició sesión con rol {}", u.getId(), u.getRol());
         return new TokenResponseDTO(jwtService.generateToken(u), u.getRol().name(), u.getId());
     }
 
@@ -83,6 +88,7 @@ public class AuthService {
 
     private void validarCorreoLibre(String correo) {
         if (usuarioRepository.existsByCorreo(correo)) {
+            log.warn("Intento de registro con un correo ya registrado");
             throw new DuplicateResourceException("El correo " + correo + " ya está registrado");
         }
     }

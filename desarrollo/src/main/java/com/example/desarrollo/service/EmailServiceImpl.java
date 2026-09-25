@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.exceptions.ExternalServiceException;
 import com.example.desarrollo.model.Mail;
 import jakarta.mail.MessagingException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
@@ -37,7 +39,9 @@ public class EmailServiceImpl implements EmailService {
                 helper.setSubject(mail.getSubject());
                 helper.setText(html, true);
                 mailSender.send(message);
+                log.info("Correo '{}' enviado a {}", mail.getSubject(), destinatario);
             } catch (MessagingException e) {
+                log.error("No se pudo armar el correo para {}", destinatario, e);
                 throw new ExternalServiceException("No se pudo enviar el correo a " + destinatario, e);
             }
         }

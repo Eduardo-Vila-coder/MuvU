@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.dto.UniversidadRequestDTO;
 import com.example.desarrollo.dto.UniversidadResponseDTO;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UniversidadService {
@@ -29,6 +31,7 @@ public class UniversidadService {
         geolocalizarUniversidad(universidad);
 
         universidad = universidadRepository.save(universidad);
+        log.info("Universidad {} creada: {}", universidad.getId(), universidad.getNombre());
         return modelMapper.map(universidad, UniversidadResponseDTO.class);
     }
 
@@ -64,5 +67,6 @@ public class UniversidadService {
             throw new ResourceNotFoundException("Universidad no encontrada con ID: " + id);
         }
         universidadRepository.deleteById(id);
+        log.info("Universidad {} eliminada", id);
     }
 }

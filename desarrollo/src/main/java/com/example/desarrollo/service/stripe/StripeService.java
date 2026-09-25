@@ -1,5 +1,6 @@
 package com.example.desarrollo.service.stripe;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.exceptions.PaymentException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -9,6 +10,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class StripeService {
 
@@ -47,6 +49,7 @@ public class StripeService {
                 .build();
 
         PaymentIntent pago = PaymentIntent.create(params);
+        log.info("PaymentIntent {} con estado {} para la habitación {}", pago.getId(), pago.getStatus(), habitacionId);
         if (!"succeeded".equals(pago.getStatus())) {
             throw new PaymentException("El pago no fue aprobado. Estado: " + pago.getStatus());
         }

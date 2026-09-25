@@ -6,6 +6,7 @@ import com.example.desarrollo.dto.ReservaResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.exceptions.InvalidOperationException;
+import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
@@ -110,6 +111,82 @@ class ReservaServiceTest {
 
         assertEquals(Estado.CONFIRMADO, respuesta.getEstado());
         verify(publisher).publishEvent(any(NotificacionCorreoEvent.class));
+    }
+
+    @Test
+    void cancelarReserva_porElEstudiante_quedaCancelada() {
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reservaPendiente()));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(3L);
+        when(reservaRepository.save(any(Reserva.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        assertEquals(Estado.CANCELADO, reservaService.cancelReserva(10L).getEstado());
+        verify(publisher).publishEvent(any(NotificacionCorreoEvent.class));
+    }
+
+    @Test
+    void cancelarReserva_porOtroEstudiante_lanzaForbidden() {
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reservaPendiente()));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(99L);
+
+        assertThrows(ForbiddenException.class, () -> reservaService.cancelReserva(10L));
+    }
+
+    @Test
+    void cancelarReserva_yaConfirmada_lanzaEstadoInvalido() {
+        Reserva reserva = reservaPendiente();
+        reserva.setEstado(Estado.CONFIRMADO);
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reserva));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(3L);
+
+        assertThrows(ReservaInvalidStateException.class, () -> reservaService.cancelReserva(10L));
+    }
+
+    @Test
+    void confirmarReserva_yaCancelada_lanzaEstadoInvalido() {
+        Reserva reserva = reservaPendiente();
+        reserva.setEstado(Estado.CANCELADO);
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reserva));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(2L);
+
+        assertThrows(ReservaInvalidStateException.class, () -> reservaService.confirmReserva(10L));
+    }
+
+    @Test
+    void findById_porElEstudiante_devuelveLaReserva() {
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reservaPendiente()));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(3L);
+
+        assertEquals(10L, reservaService.findById(10L).getId());
+    }
+
+    @Test
+    void findById_porUnTercero_lanzaForbidden() {
+        when(reservaRepository.findById(10L)).thenReturn(Optional.of(reservaPendiente()));
+        when(usuarioService.getIdUsuarioActual()).thenReturn(99L);
+
+        assertThrows(ForbiddenException.class, () -> reservaService.findById(10L));
+    }
+
+    @Test
+    void findMisReservas_estudiante_veSoloLasSuyas() {
+        estudiante.setRol(Rol.ESTUDIANTE);
+        when(usuarioService.getIdUsuarioActual()).thenReturn(3L);
+        when(usuarioRepository.findById(3L)).thenReturn(Optional.<Usuario>of(estudiante));
+        when(reservaRepository.findByEstudianteId(3L)).thenReturn(List.of(reservaPendiente()));
+
+        assertEquals(1, reservaService.findMisReservas().size());
+        verify(reservaRepository, never()).findAll();
+    }
+
+    @Test
+    void findMisReservas_arrendador_veLasDeSusHabitaciones() {
+        Arrendador arrendador = habitacion.getArrendador();
+        arrendador.setRol(Rol.ARRENDADOR);
+        when(usuarioService.getIdUsuarioActual()).thenReturn(2L);
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.<Usuario>of(arrendador));
+        when(reservaRepository.findByHabitacionArrendadorId(2L)).thenReturn(List.of(reservaPendiente()));
+
+        assertEquals(1, reservaService.findMisReservas().size());
     }
 
     private void prepararCreacion() {
