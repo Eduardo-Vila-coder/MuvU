@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pagos-publicidad")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Permite llamadas desde tu frontend (React, Angular, etc.)
 public class PagoPublicidadController {
 
     private final PagoPublicidadService pagoPublicidadService;

@@ -3,6 +3,8 @@ package com.example.desarrollo.config;
 import com.example.desarrollo.service.JwtAuthorizationFilter;
 import com.example.desarrollo.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.util.List;
 
@@ -48,11 +54,28 @@ public class SecurityConfig {
         return new ProviderManager(List.of(authenticationProvider()));
     }
 
+    // Orígenes (frontends) que pueden llamar a la API; se configuran por variable de entorno
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins}") List<String> allowedOrigins) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setExposedHeaders(List.of("Location"));   // para leer la URL del recurso creado (201)
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())   // para que funcione tu @CrossOrigin
+                .cors(Customizer.withDefaults())   // usa el bean corsConfigurationSource
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // ===== Públicos =====
@@ -94,6 +117,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
 
                 )
+                // Sin token o token inválido -> 401; con token pero sin el rol necesario -> 403.
+                // Se delega al GlobalExceptionHandler para responder con el mismo ErrorResponseDTO
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> resolver.resolveException(req, res, null, ex))
+                        .accessDeniedHandler((req, res, ex) -> resolver.resolveException(req, res, null, ex)))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
