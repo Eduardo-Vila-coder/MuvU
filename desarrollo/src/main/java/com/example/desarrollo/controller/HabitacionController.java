@@ -5,6 +5,10 @@ import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.service.HabitacionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,10 +30,10 @@ public class HabitacionController {
     // Nuevo Endpoint para buscar por cercanía y radio de universidad
     @GetMapping("/cercanas")
     public ResponseEntity<Page<HabitacionResponseDTO>> getHabitacionesCercanas(
-            @RequestParam Long universidadId,
-            @RequestParam(defaultValue = "5.0") Double radioKm,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam @Positive Long universidadId,
+            @RequestParam(defaultValue = "5.0") @Positive @DecimalMax("50.0") Double radioKm,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(habitacionService.findCercanas(universidadId, radioKm, pageable));
     }
@@ -59,8 +63,8 @@ public class HabitacionController {
 
     @GetMapping
     public ResponseEntity<Page<HabitacionResponseDTO>> getAllHabitaciones(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("esDestacada").descending());
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
