@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.ActualizacionHabitacionesEvent;
 import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
@@ -15,6 +16,7 @@ import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,6 +37,7 @@ public class HabitacionService {
     private final ModelMapper modelMapper;
     private final ArrendadorRepository arrendadorRepository;
     private final UsuarioService usuarioService;
+    private final ApplicationEventPublisher publisher;
     private final UniversidadRepository universidadRepository; // <-- Inyección añadida
 
     // Búsqueda por cercanía, filtro de radio y ordenamiento
@@ -96,6 +99,10 @@ public class HabitacionService {
         Arrendador yo = arrendadorRepository.findById(usuarioService.getIdUsuarioActual())
                 .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado"));
 
+        if (!Boolean.TRUE.equals(yo.getVerificado())) {
+            throw new AccessDeniedException("Tu cuenta aún no ha sido verificada por un administrador");
+        }
+
         Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
         newHabitacion.setArrendador(yo);
 
@@ -103,6 +110,7 @@ public class HabitacionService {
         newHabitacion.setLatitud(coords.lat);
         newHabitacion.setLongitud(coords.lng);
         newHabitacion = habitacionRepository.save(newHabitacion);
+        publisher.publishEvent(new ActualizacionHabitacionesEvent(this, yo.getId()));
         return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
     }
 
@@ -128,13 +136,35 @@ public class HabitacionService {
     // Delete (DELETE)
     @Transactional
     public void deleteById(Long id) {
+        Habitacion habitacion = buscarPropia(id);
+        habitacionRepository.delete(habitacion);
+        publisher.publishEvent(new ActualizacionHabitacionesEvent(this, habitacion.getArrendador().getId()));
+    }
 
+    @Transactional
+    public HabitacionResponseDTO update(Long id, HabitacionRequestDTO dto) {
+        Habitacion habitacion = buscarPropia(id);
+
+        if (!habitacion.getDireccion().equalsIgnoreCase(dto.getDireccion())) {
+            LatLng coords = googleMapsService.obtenerCoordenadas(dto.getDireccion());
+            habitacion.setLatitud(coords.lat);
+            habitacion.setLongitud(coords.lng);
+        }
+        habitacion.setDireccion(dto.getDireccion());
+        habitacion.setPrecio(dto.getPrecio());
+        habitacion.setArea(dto.getArea());
+
+        return modelMapper.map(habitacion, HabitacionResponseDTO.class);
+    }
+
+    // Busca la habitación y valida que sea del arrendador logueado
+    private Habitacion buscarPropia(Long id) {
         Habitacion habitacion = habitacionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + id));
 
         if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
-            throw new AccessDeniedException("Solo el dueño puede eliminar esta habitación");
+            throw new AccessDeniedException("Solo el dueño puede modificar esta habitación");
         }
-        habitacionRepository.delete(habitacion);
+        return habitacion;
     }
 }
