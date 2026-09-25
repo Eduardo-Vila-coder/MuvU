@@ -1,6 +1,9 @@
 package com.example.desarrollo.model;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Table(name = "usuario")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
@@ -22,22 +26,28 @@ public abstract class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
+    @Size(max = 100)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
+    @NotBlank
     @Email
-    @Column(unique = true, nullable = false)
+    @Size(max = 150)
+    @Column(nullable = false, unique = true, length = 150)
     private String correo;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Column(nullable = false, length = 100)
     private String contrasena;
 
+    @Column(nullable = false)
     private Boolean verificado = false;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private Rol rol;
 
-    // ---- UserDetails ----
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(rol.name()));

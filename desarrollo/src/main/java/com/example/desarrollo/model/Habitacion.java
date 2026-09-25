@@ -1,60 +1,64 @@
 package com.example.desarrollo.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
+@Table(name = "habitacion", indexes = {
+        @Index(name = "idx_habitacion_arrendador", columnList = "arrendador_id")
+})
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class Habitacion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
+    @Size(max = 255)
+    @Column(nullable = false)
     private String direccion;
 
-    @Column(nullable = true)
     private Double latitud;
 
-    @Column(nullable = true)
     private Double longitud;
 
     @Positive
-    private double precio; // Double
+    @Column(nullable = false)
+    private double precio;
 
     @Positive
+    @Column(nullable = false)
     private Integer area;
 
+    @Column(nullable = false)
     private Boolean esDestacada = false;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "arrendador_id", nullable = false)
-    @Valid
     private Arrendador arrendador;
+
+    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Imagen> imagenes = new ArrayList<>();
 
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<Reserva> reservas = new ArrayList<>();
 
-    @OneToMany(mappedBy = "habitacion", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Imagen> imagenes = new ArrayList<>();
-
     @OneToMany(mappedBy = "habitacion", fetch = FetchType.LAZY)
     private List<PagoPublicidad> pagoPublicidades = new ArrayList<>();
 
-    @OneToMany(mappedBy="receptor", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "receptor", fetch = FetchType.LAZY)
     private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
-
 }

@@ -9,29 +9,35 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Setter
-@Getter
 @Entity
+@Table(name = "pago_publicidad", indexes = {
+        @Index(name = "idx_pago_habitacion", columnList = "habitacion_id")
+})
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class PagoPublicidad {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habitacion_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "habitacion_id", nullable = false)
     private Habitacion habitacion;
 
     @Positive
+    @Column(nullable = false)
     private Double monto;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "metodo_pago", nullable = false, length = 20)
     private MetodoPago metodoPago;
 
+    @Column(nullable = false)
     private LocalDate fechaInicio;
+
+    @Column(nullable = false)
     private LocalDate fechaFin;
-
-
 }
