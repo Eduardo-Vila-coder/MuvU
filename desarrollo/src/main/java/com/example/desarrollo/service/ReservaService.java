@@ -4,6 +4,8 @@ import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.ForbiddenException;
+import com.example.desarrollo.exceptions.InvalidOperationException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
@@ -13,7 +15,6 @@ import com.example.desarrollo.repository.ReservaRepository;
 import com.example.desarrollo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +40,7 @@ public class ReservaService {
         boolean soyElDueno = reserva.getHabitacion().getArrendador().getId().equals(miId);
 
         if (!soyElEstudiante && !soyElDueno) {
-            throw new AccessDeniedException("No tienes acceso a esta reserva");
+            throw new ForbiddenException("No tienes acceso a esta reserva");
         }
         return toDTO(reserva);
     }
@@ -86,7 +87,7 @@ public class ReservaService {
 
         if (reserva.getEstudiante() == null
                 || !reserva.getEstudiante().getId().equals(usuarioService.getIdUsuarioActual())) {
-            throw new AccessDeniedException("Solo el estudiante que hizo la reserva puede cancelarla");
+            throw new ForbiddenException("Solo el estudiante que hizo la reserva puede cancelarla");
         }
         if (reserva.getEstado() == Estado.CANCELADO) {
             throw new ReservaInvalidStateException("No se puede cancelar una reserva ya cancelada");
@@ -106,7 +107,7 @@ public class ReservaService {
         Reserva reserva = buscarReserva(id);
 
         if (!reserva.getHabitacion().getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
-            throw new AccessDeniedException("Solo el dueño de la habitación puede confirmar la reserva");
+            throw new ForbiddenException("Solo el dueño de la habitación puede confirmar la reserva");
         }
         if (reserva.getEstado() == Estado.CANCELADO) {
             throw new ReservaInvalidStateException("No se puede confirmar una reserva ya cancelada");
@@ -134,7 +135,7 @@ public class ReservaService {
 
     private void validarFechas(Long habitacionId, LocalDate inicio, LocalDate fin) {
         if (!fin.isAfter(inicio)) {
-            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la fecha de inicio");
+            throw new InvalidOperationException("La fecha de fin debe ser posterior a la fecha de inicio");
         }
         boolean ocupada = reservaRepository
                 .findByHabitacionIdAndEstadoIn(habitacionId, List.of(Estado.PENDIENTE, Estado.CONFIRMADO))

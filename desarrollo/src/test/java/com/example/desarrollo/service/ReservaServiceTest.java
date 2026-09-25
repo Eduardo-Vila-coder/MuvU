@@ -4,6 +4,8 @@ import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.ForbiddenException;
+import com.example.desarrollo.exceptions.InvalidOperationException;
 import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
@@ -16,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -87,7 +88,7 @@ class ReservaServiceTest {
     void crearReserva_conFinAntesDelInicio_lanzaIllegalArgument() {
         prepararCreacion();
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(InvalidOperationException.class,
                 () -> reservaService.createReserva(solicitud(hoy.plusDays(5), hoy.plusDays(1))));
     }
 
@@ -96,7 +97,7 @@ class ReservaServiceTest {
         when(reservaRepository.findById(10L)).thenReturn(Optional.of(reservaPendiente()));
         when(usuarioService.getIdUsuarioActual()).thenReturn(99L);
 
-        assertThrows(AccessDeniedException.class, () -> reservaService.confirmReserva(10L));
+        assertThrows(ForbiddenException.class, () -> reservaService.confirmReserva(10L));
     }
 
     @Test

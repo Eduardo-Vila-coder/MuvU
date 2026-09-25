@@ -5,6 +5,7 @@ import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
 import com.example.desarrollo.dto.ImagenResponseDTO;
+import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
@@ -17,7 +18,6 @@ import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -102,7 +102,7 @@ public class HabitacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado"));
 
         if (!Boolean.TRUE.equals(yo.getVerificado())) {
-            throw new AccessDeniedException("Tu cuenta aún no ha sido verificada por un administrador");
+            throw new ForbiddenException("Tu cuenta aún no ha sido verificada por un administrador");
         }
 
         Habitacion newHabitacion = modelMapper.map(habitacionRequestDTO, Habitacion.class);
@@ -166,7 +166,7 @@ public class HabitacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + id));
 
         if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
-            throw new AccessDeniedException("Solo el dueño puede modificar esta habitación");
+            throw new ForbiddenException("Solo el dueño puede modificar esta habitación");
         }
         return habitacion;
     }

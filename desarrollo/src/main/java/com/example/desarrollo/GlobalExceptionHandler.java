@@ -2,6 +2,7 @@ package com.example.desarrollo;
 
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ErrorDetails;
+import com.example.desarrollo.exceptions.MuvuException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +55,16 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp",Instant.now());
         return problemDetail;
     }
+
+    // Resto de excepciones propias (Forbidden, InvalidOperation, ExternalService, Payment): usan su propio status
+    @ExceptionHandler(MuvuException.class)
+    public ProblemDetail handlerMuvu(MuvuException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
+        p.setTitle(ex.getStatus().getReasonPhrase());
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorDetails> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request){
         String message = String.format("El método HTTP '%s' no está permitido para esta ruta. Métodos soportados: %s", ex.getMethod(), ex.getSupportedHttpMethods());

@@ -5,7 +5,7 @@ import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
 import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
-import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.DuplicateResourceException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.ArrendadorRepository;
@@ -83,7 +83,7 @@ public class AuthService {
 
     private void validarCorreoLibre(String correo) {
         if (usuarioRepository.existsByCorreo(correo)) {
-            throw new ConflictException("El correo " + correo + " ya está registrado");
+            throw new DuplicateResourceException("El correo " + correo + " ya está registrado");
         }
     }
 }
