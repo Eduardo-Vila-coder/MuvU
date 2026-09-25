@@ -2,13 +2,13 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.ImagenRequestDTO;
 import com.example.desarrollo.dto.ImagenResponseDTO;
+import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Habitacion;
 import com.example.desarrollo.model.Imagen;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ImagenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +65,7 @@ public class ImagenService {
     private void validarDueno(Habitacion habitacion) {
         Long miId = usuarioService.getIdUsuarioActual();
         if (!habitacion.getArrendador().getId().equals(miId)) {
-            throw new AccessDeniedException("Solo el dueño de la habitación puede modificar sus imágenes");
+            throw new ForbiddenException("Solo el dueño de la habitación puede modificar sus imágenes");
         }
     }
 

@@ -1,7 +1,9 @@
 package com.example.desarrollo.exceptions;
 
-public class ConflictException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class ConflictException extends MuvuException {
     public ConflictException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT);
     }
 }

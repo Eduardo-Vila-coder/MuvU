@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.model.Rol;
 import com.example.desarrollo.model.Usuario;
 import com.example.desarrollo.repository.UsuarioRepository;
@@ -9,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
 
 
 @Service
@@ -34,7 +34,7 @@ public class UsuarioService implements UserDetailsService {
         Usuario yo = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (yo.getRol() == Rol.ADMIN) return; // El rol admin siempre tiene permisos
         if (!yo.getId().equals(id)) {
-            throw new AccessDeniedException("No puedes modificar datos de otro usuario");
+            throw new ForbiddenException("No puedes modificar datos de otro usuario");
         }
     }
 

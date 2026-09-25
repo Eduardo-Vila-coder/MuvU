@@ -5,8 +5,8 @@ import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.security.access.AccessDeniedException;
-import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.exceptions.DuplicateResourceException;
+import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
@@ -51,7 +51,7 @@ public class CalificacionService implements ApplicationEventPublisherAware {
 
 
         if (reserva.getEstudiante() == null || !reserva.getEstudiante().getId().equals(autor.getId())) {
-            throw new AccessDeniedException("El estudiante con ID: " + autor.getId()
+            throw new ForbiddenException("El estudiante con ID: " + autor.getId()
                     + " no es el titular de la reserva con ID: " + reserva.getId());
         }
 
@@ -60,7 +60,7 @@ public class CalificacionService implements ApplicationEventPublisherAware {
         }
 
         if (calificacionRepository.existsByReservaIdAndAutorId(reserva.getId(), autor.getId())) {
-            throw new ConflictException("La reserva con ID: " + reserva.getId() + " ya fue calificada");
+            throw new DuplicateResourceException("La reserva con ID: " + reserva.getId() + " ya fue calificada");
         }
 
         Calificacion newCalificacion = new Calificacion();

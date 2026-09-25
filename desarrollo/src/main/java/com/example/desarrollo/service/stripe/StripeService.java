@@ -1,5 +1,6 @@
 package com.example.desarrollo.service.stripe;
 
+import com.example.desarrollo.exceptions.PaymentException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -47,7 +48,7 @@ public class StripeService {
 
         PaymentIntent pago = PaymentIntent.create(params);
         if (!"succeeded".equals(pago.getStatus())) {
-            throw new IllegalStateException("El pago no fue aprobado. Estado: " + pago.getStatus());
+            throw new PaymentException("El pago no fue aprobado. Estado: " + pago.getStatus());
         }
         return pago;
     }

@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.exceptions.ExternalServiceException;
 import com.example.desarrollo.model.Mail;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -37,7 +38,7 @@ public class EmailServiceImpl implements EmailService {
                 helper.setText(html, true);
                 mailSender.send(message);
             } catch (MessagingException e) {
-                throw new IllegalStateException("No se pudo enviar el correo a " + destinatario, e);
+                throw new ExternalServiceException("No se pudo enviar el correo a " + destinatario, e);
             }
         }
     }

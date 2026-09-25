@@ -1,5 +1,7 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.exceptions.ExternalServiceException;
+import com.example.desarrollo.exceptions.InvalidOperationException;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.model.GeocodingResult;
@@ -28,10 +30,10 @@ public class GoogleMapsService {
         try {
             results = GeocodingApi.geocode(context, direccion).await();
         } catch (Exception e) {
-            throw new IllegalStateException("Error al consultar la API de Google Maps: " + e.getMessage(), e);
+            throw new ExternalServiceException("Error al consultar la API de Google Maps: " + e.getMessage(), e);
         }
         if (results == null || results.length == 0) {
-            throw new IllegalArgumentException("No se encontraron coordenadas para la dirección: " + direccion);
+            throw new InvalidOperationException("No se encontraron coordenadas para la dirección: " + direccion);
         }
         return results[0].geometry.location;
     }

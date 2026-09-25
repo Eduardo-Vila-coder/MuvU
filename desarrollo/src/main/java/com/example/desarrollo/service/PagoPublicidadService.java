@@ -3,6 +3,9 @@ package com.example.desarrollo.service;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.PagoPublicidadRequestDTO;
 import com.example.desarrollo.dto.PagoPublicidadResponseDTO;
+import com.example.desarrollo.exceptions.ForbiddenException;
+import com.example.desarrollo.exceptions.InvalidOperationException;
+import com.example.desarrollo.exceptions.PaymentException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
@@ -16,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +43,7 @@ public class PagoPublicidadService {
                 .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + requestDTO.getHabitacionId()));
 
         if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
-            throw new AccessDeniedException("Solo el dueño puede pagar publicidad para esta habitación");
+            throw new ForbiddenException("Solo el dueño puede pagar publicidad para esta habitación");
         }
 
         // 2. Validamos el monto ANTES de cobrar
@@ -52,7 +54,7 @@ public class PagoPublicidadService {
         try {
             stripeService.procesarCobro(habitacion.getId(), requestDTO.getMonto(), "usd");
         } catch (StripeException e) {
-            throw new IllegalStateException("Error al procesar el pago en Stripe: " + e.getMessage());
+            throw new PaymentException("Error al procesar el pago en Stripe: " + e.getMessage(), e);
         }
 
         // 4. Activamos el destacado en la habitación
@@ -93,7 +95,7 @@ public class PagoPublicidadService {
         } else if (Double.compare(monto, 54.0) == 0) {
             return fechaInicio.plusDays(60);
         } else {
-            throw new IllegalArgumentException("Monto no permitido. Solo son 2 opciones disponibles");
+            throw new InvalidOperationException("Monto no permitido. Solo son 2 opciones disponibles");
         }
     }
 
