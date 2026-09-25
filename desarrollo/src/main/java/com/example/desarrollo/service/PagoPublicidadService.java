@@ -1,9 +1,12 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.PagoPublicidadRequestDTO;
 import com.example.desarrollo.dto.PagoPublicidadResponseDTO;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
+import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
+import com.example.desarrollo.model.Mail;
 import com.example.desarrollo.model.PagoPublicidad;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.PagoPublicidadRepository;
@@ -11,7 +14,9 @@ import com.example.desarrollo.service.stripe.StripeService;
 import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +31,8 @@ public class PagoPublicidadService {
     private final HabitacionRepository habitacionRepository;
     private final StripeService stripeService;
     private final ModelMapper modelMapper;
+    private final UsuarioService usuarioService;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public PagoPublicidadResponseDTO registrarPago(PagoPublicidadRequestDTO requestDTO) {
@@ -33,28 +40,41 @@ public class PagoPublicidadService {
         Habitacion habitacion = habitacionRepository.findById(requestDTO.getHabitacionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + requestDTO.getHabitacionId()));
 
-        // 2. Procesamos el cobro en Stripe
+        if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
+            throw new AccessDeniedException("Solo el dueño puede pagar publicidad para esta habitación");
+        }
+
+        // 2. Validamos el monto ANTES de cobrar
+        LocalDate fechaInicio = LocalDate.now();
+        LocalDate fechaFin = calcularFechaFin(fechaInicio, requestDTO.getMonto());
+
+        // 3. Procesamos el cobro en Stripe
         try {
             stripeService.procesarCobro(habitacion.getId(), requestDTO.getMonto(), "usd");
         } catch (StripeException e) {
-            throw new RuntimeException("Error al procesar el pago en Stripe: " + e.getMessage());
+            throw new IllegalStateException("Error al procesar el pago en Stripe: " + e.getMessage());
         }
 
-        // 3. Activamos el destacado en la habitación
+        // 4. Activamos el destacado en la habitación
         habitacion.setEsDestacada(true);
         habitacionRepository.save(habitacion);
 
-        // 4. Creamos y guardamos el registro de PagoPublicidad con sus fechas calculadas
+        // 5. Creamos y guardamos el registro de PagoPublicidad con sus fechas calculadas
         PagoPublicidad pago = modelMapper.map(requestDTO, PagoPublicidad.class);
         pago.setHabitacion(habitacion);
 
         // --- Calculamos las fechas ---
-        LocalDate fechaInicio = LocalDate.now();
         pago.setFechaInicio(fechaInicio);
-        pago.setFechaFin(calcularFechaFin(fechaInicio, requestDTO.getMonto()));
+        pago.setFechaFin(fechaFin);
         // ---------------------------------------------
 
         pago = pagoPublicidadRepository.save(pago);
+
+        Arrendador arrendador = habitacion.getArrendador();
+        publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(arrendador.getCorreo(),
+                "MuvU: pago de publicidad confirmado",
+                "Hola " + arrendador.getNombre() + ", recibimos tu pago de " + requestDTO.getMonto()
+                        + ". Tu habitación en " + habitacion.getDireccion() + " estará destacada hasta el " + fechaFin + ".")));
 
         return modelMapper.map(pago, PagoPublicidadResponseDTO.class);
     }

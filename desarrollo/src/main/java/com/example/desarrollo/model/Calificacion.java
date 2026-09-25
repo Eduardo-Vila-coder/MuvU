@@ -27,7 +27,7 @@ public class Calificacion {
     @Min(1)
     @Max(5)
     @Column(nullable = false)
-    private int puntuacion;
+    private Integer puntuacion;
 
     @Size(max = 255)
     @Column(length = 255)

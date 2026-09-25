@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
@@ -12,6 +13,7 @@ import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.UniversidadRepository;
 import com.example.desarrollo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public TokenResponseDTO registerEstudiante(EstudianteRequestDTO dto) {
@@ -44,7 +47,8 @@ public class AuthService {
         e.setUniversidad(uni);
 
         estudianteRepository.save(e);
-        return new TokenResponseDTO(jwtService.generateToken(e), e.getRol().name());
+        enviarBienvenida(e, "Ya puedes buscar y reservar habitaciones cerca de tu universidad.");
+        return new TokenResponseDTO(jwtService.generateToken(e), e.getRol().name(), e.getId());
     }
 
     @Transactional
@@ -58,7 +62,8 @@ public class AuthService {
         a.setRol(Rol.ARRENDADOR);
 
         arrendadorRepository.save(a);
-        return new TokenResponseDTO(jwtService.generateToken(a), a.getRol().name());
+        enviarBienvenida(a, "Un administrador revisará tu cuenta; cuando esté verificada podrás publicar tus habitaciones.");
+        return new TokenResponseDTO(jwtService.generateToken(a), a.getRol().name(), a.getId());
     }
 
     public TokenResponseDTO login(LoginRequestDTO dto) {
@@ -67,7 +72,13 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(dto.getCorreo(), dto.getContrasena()));
 
         Usuario u = usuarioRepository.findByCorreo(dto.getCorreo()).orElseThrow();
-        return new TokenResponseDTO(jwtService.generateToken(u), u.getRol().name());
+        return new TokenResponseDTO(jwtService.generateToken(u), u.getRol().name(), u.getId());
+    }
+
+    private void enviarBienvenida(Usuario usuario, String mensaje) {
+        publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(usuario.getCorreo(),
+                "¡Bienvenido a MuvU!",
+                "Hola " + usuario.getNombre() + ", tu cuenta fue creada con éxito. " + mensaje)));
     }
 
     private void validarCorreoLibre(String correo) {

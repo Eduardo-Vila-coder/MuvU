@@ -11,12 +11,15 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.security.access.AccessDeniedException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -94,6 +97,28 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT,
                 "No se puede completar la operación porque el registro está relacionado con otros datos");
         p.setTitle("Conflicto de integridad de datos");
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
+    // Fallos de servicios externos (Stripe, Google Maps, correo)
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handlerIllegalState(IllegalStateException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
+        p.setTitle("Error en un servicio externo");
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
+    // Errores de @Valid en los DTOs: devuelve el mensaje de cada campo
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handlerValidacion(MethodArgumentNotValidException ex) {
+        Map<String, String> errores = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage(), (a, b) -> a));
+
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Datos inválidos");
+        p.setTitle("Error de validación");
+        p.setProperty("errores", errores);
         p.setProperty("timestamp", Instant.now());
         return p;
     }

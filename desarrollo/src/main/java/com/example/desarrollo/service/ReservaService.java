@@ -1,7 +1,9 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
+import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
@@ -10,10 +12,12 @@ import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ReservaRepository;
 import com.example.desarrollo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,6 +28,7 @@ public class ReservaService {
     private final HabitacionRepository habitacionRepository;
     private final EstudianteRepository estudianteRepository;
     private final UsuarioService usuarioService;
+    private final ApplicationEventPublisher publisher;
 
     public ReservaResponseDTO findById(Long id) {
         Reserva reserva = buscarReserva(id);
@@ -62,8 +67,16 @@ public class ReservaService {
         Habitacion habitacion = habitacionRepository.findById(dto.getHabitacionId())
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontro habitacion con id: " + dto.getHabitacionId()));
 
-        Reserva reserva = new Reserva(dto.getFecha_fin(), yo, habitacion);
-        return toDTO(reservaRepository.save(reserva));
+        validarFechas(habitacion.getId(), dto.getFecha_inicio(), dto.getFecha_fin());
+
+        Reserva reserva = reservaRepository.save(new Reserva(dto.getFecha_inicio(), dto.getFecha_fin(), yo, habitacion));
+
+        notificar(yo.getCorreo(), "MuvU: solicitud de reserva enviada",
+                "Hola " + yo.getNombre() + ", enviaste una solicitud para " + detalle(reserva)
+                        + ". Te avisaremos cuando el arrendador la confirme.");
+        notificar(habitacion.getArrendador().getCorreo(), "MuvU: nueva solicitud de reserva",
+                yo.getNombre() + " quiere reservar " + detalle(reserva) + ". Ingresa a MuvU para confirmarla.");
+        return toDTO(reserva);
     }
 
     // Solo el estudiante que hizo la reserva puede cancelarla
@@ -82,6 +95,8 @@ public class ReservaService {
         }
 
         reserva.setEstado(Estado.CANCELADO);
+        notificar(reserva.getHabitacion().getArrendador().getCorreo(), "MuvU: reserva cancelada",
+                reserva.getEstudiante().getNombre() + " canceló su solicitud para " + detalle(reserva) + ".");
         return toDTO(reservaRepository.save(reserva));
     }
 
@@ -100,10 +115,35 @@ public class ReservaService {
         }
 
         reserva.setEstado(Estado.CONFIRMADO);
+        notificar(reserva.getEstudiante().getCorreo(), "MuvU: tu reserva fue confirmada",
+                "Hola " + reserva.getEstudiante().getNombre() + ", el arrendador confirmó tu reserva para "
+                        + detalle(reserva) + ".");
         return toDTO(reservaRepository.save(reserva));
     }
 
     // ---------- helpers ----------
+
+    private void notificar(String correo, String asunto, String mensaje) {
+        publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(correo, asunto, mensaje)));
+    }
+
+    private String detalle(Reserva r) {
+        return "la habitación en " + r.getHabitacion().getDireccion()
+                + " del " + r.getFecha_inicio() + " al " + r.getFecha_fin();
+    }
+
+    private void validarFechas(Long habitacionId, LocalDate inicio, LocalDate fin) {
+        if (!fin.isAfter(inicio)) {
+            throw new IllegalArgumentException("La fecha de fin debe ser posterior a la fecha de inicio");
+        }
+        boolean ocupada = reservaRepository
+                .findByHabitacionIdAndEstadoIn(habitacionId, List.of(Estado.PENDIENTE, Estado.CONFIRMADO))
+                .stream()
+                .anyMatch(r -> r.seCruzaCon(inicio, fin));
+        if (ocupada) {
+            throw new ConflictException("La habitación ya está reservada en esas fechas");
+        }
+    }
 
     private Reserva buscarReserva(Long id) {
         return reservaRepository.findById(id)

@@ -1,25 +1,43 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.ArrendadorResponseDTO;
+import com.example.desarrollo.dto.ArrendadorUpdateRequestDTO;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
+import com.example.desarrollo.model.Calificacion;
+import com.example.desarrollo.model.Mail;
 import com.example.desarrollo.repository.ArrendadorRepository;
+import com.example.desarrollo.repository.CalificacionRepository;
+import com.example.desarrollo.repository.HabitacionRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class ArrendadorService {
     private final ArrendadorRepository arrendadorRepository;
     private final ModelMapper modelMapper;
     private final UsuarioService usuarioService;
+    private final CalificacionRepository calificacionRepository;
+    private final HabitacionRepository habitacionRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Autowired
-    public ArrendadorService(ArrendadorRepository arrendadorRepository, ModelMapper modelMapper,  UsuarioService usuarioService) {
+    public ArrendadorService(ArrendadorRepository arrendadorRepository, ModelMapper modelMapper,
+                             UsuarioService usuarioService, CalificacionRepository calificacionRepository,
+                             HabitacionRepository habitacionRepository, ApplicationEventPublisher publisher) {
         this.arrendadorRepository = arrendadorRepository;
         this.modelMapper = modelMapper;
         this.usuarioService = usuarioService;
+        this.calificacionRepository = calificacionRepository;
+        this.habitacionRepository = habitacionRepository;
+        this.publisher = publisher;
     }
 
     // Read (GET)
@@ -33,11 +51,34 @@ public class ArrendadorService {
         return null;
     }
 
-    // Update (PUT) - Que se actualice la foto del DNI
+    @Transactional
+    public ArrendadorResponseDTO update(Long id, ArrendadorUpdateRequestDTO dto) {
+        usuarioService.validarQueSoyYo(id);
+        Arrendador arrendador = buscar(id);
+        arrendador.setNombre(dto.getNombre());
+        arrendador.setDniFoto(dto.getDniFoto());
+        return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
+    }
 
-    // (PATCH)
+    // Solo el ADMIN (regla en SecurityConfig): aprueba al arrendador tras revisar su DNI
+    @Transactional
+    public ArrendadorResponseDTO verificar(Long id) {
+        Arrendador arrendador = buscar(id);
+        arrendador.setVerificado(true);
 
-    // Delete (DELETE)
+        publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(arrendador.getCorreo(),
+                "MuvU: tu cuenta fue verificada",
+                "Hola " + arrendador.getNombre() + ", verificamos tu identidad. Ya puedes publicar tus habitaciones en MuvU.")));
+        return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
+    }
+
+    private Arrendador buscar(Long id) {
+        return arrendadorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado con ID: " + id));
+    }
+
+
+
     public void deleteById(Long id) {
         usuarioService.validarQueSoyYo(id);
         if (!arrendadorRepository.existsById(id)) {
@@ -46,5 +87,26 @@ public class ArrendadorService {
         arrendadorRepository.deleteById(id);
     }
 
+    // Recalcula el promedio con todas las calificaciones de las habitaciones del arrendador
+    @Transactional
+    public void actualizarPromedio(Long arrendadorId) {
+        Arrendador arrendador = arrendadorRepository.findById(arrendadorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado con ID: " + arrendadorId));
 
+        List<Calificacion> calificaciones = calificacionRepository.findByReceptorArrendadorId(arrendadorId);
+
+        double promedio = calificaciones.stream()
+                .mapToInt(Calificacion::getPuntuacion)
+                .average()
+                .orElse(0.0);
+
+        arrendador.setPuntajePromedio(Math.round(promedio * 10) / 10.0);
+        arrendador.setTotalCalificaciones((long) calificaciones.size());
+    }
+
+    @Transactional
+    public void actualizarCantidadHabitaciones(Long arrendadorId) {
+        Arrendador arrendador = buscar(arrendadorId);
+        arrendador.setCantidadHabitaciones(habitacionRepository.countByArrendadorId(arrendadorId));
+    }
 }

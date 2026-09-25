@@ -69,6 +69,12 @@ public class HabitacionController {
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<HabitacionResponseDTO> updateHabitacion(
+            @PathVariable Long id, @Valid @RequestBody HabitacionRequestDTO dto) {
+        return ResponseEntity.ok(habitacionService.update(id, dto));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable Long id) {
         habitacionService.deleteById(id);

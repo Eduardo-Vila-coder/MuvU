@@ -1,7 +1,10 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.Events.ActualizacionPromedioEvent;
 import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.access.AccessDeniedException;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
@@ -14,14 +17,16 @@ import com.example.desarrollo.repository.ReservaRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CalificacionService {
+public class CalificacionService implements ApplicationEventPublisherAware {
 
+    private ApplicationEventPublisher publisher;
     private final CalificacionRepository calificacionRepository;
     private final ModelMapper modelMapper;
     private final EstudianteRepository estudianteRepository;
@@ -30,6 +35,12 @@ public class CalificacionService {
     private final UsuarioService usuarioService;
 
 
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    @Transactional
     public CalificacionResponseDTO create(CalificacionRequestDTO dto) {
         Reserva reserva = reservaRepository.findById(dto.getReservaId())
                 .orElseThrow(() -> new ResourceNotFoundException("No existe reserva con el ID: " + dto.getReservaId()));
@@ -63,6 +74,10 @@ public class CalificacionService {
         newCalificacion.setReceptor(habitacion);
         newCalificacion = calificacionRepository.save(newCalificacion);
 
+        newCalificacion = calificacionRepository.save(newCalificacion);
+
+        publisher.publishEvent(new ActualizacionPromedioEvent(this, habitacion.getArrendador().getId()));
+
         CalificacionResponseDTO response = modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
         response.setHabitacionId(habitacion.getId());
         return response;
@@ -93,12 +108,15 @@ public class CalificacionService {
                 .toList();
     }
 
+    @Transactional
     public void deleteById(Long id) {
         Calificacion calificacion = calificacionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe calificacion con el ID: " + id));
 
         usuarioService.validarQueSoyYo(calificacion.getAutor().getId());
-        calificacionRepository.deleteById(id);
+        calificacionRepository.delete(calificacion);
+
+        publisher.publishEvent(new ActualizacionPromedioEvent(this, calificacion.getReceptor().getArrendador().getId()));
     }
 
     private CalificacionResponseDTO toResponseDTO(Calificacion c) {

@@ -35,14 +35,21 @@ public class StripeService {
                 //.setPaymentMethod("pm_card_visa") // Tarjeta de prueba oficial de Stripe
                 //.setConfirm(true)                 // Ejecuta el cobro inmediatamente
                 .putMetadata("habitacionId", String.valueOf(habitacionId))
+                .setPaymentMethod("pm_card_visa")   // tarjeta de prueba oficial de Stripe
+                .setConfirm(true)                   // ejecuta el cobro inmediatamente
                 .setAutomaticPaymentMethods(
                         PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                                 .setEnabled(true)
+                                .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
                                 .build()
                 )
                 .build();
 
-        return PaymentIntent.create(params);
+        PaymentIntent pago = PaymentIntent.create(params);
+        if (!"succeeded".equals(pago.getStatus())) {
+            throw new IllegalStateException("El pago no fue aprobado. Estado: " + pago.getStatus());
+        }
+        return pago;
     }
     //esto espera que en el front-end se llenen los datos bancarios
 
