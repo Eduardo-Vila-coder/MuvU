@@ -74,19 +74,15 @@ public class CalificacionService implements ApplicationEventPublisherAware {
         newCalificacion.setReceptor(habitacion);
         newCalificacion = calificacionRepository.save(newCalificacion);
 
-        newCalificacion = calificacionRepository.save(newCalificacion);
-
         publisher.publishEvent(new ActualizacionPromedioEvent(this, habitacion.getArrendador().getId()));
 
-        CalificacionResponseDTO response = modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
-        response.setHabitacionId(habitacion.getId());
-        return response;
+        return toResponseDTO(newCalificacion);
     }
 
     public CalificacionResponseDTO findById(Long id) {
         Calificacion calificacion = calificacionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe calificacion con el ID: " + id));
-        return modelMapper.map(calificacion, CalificacionResponseDTO.class);
+        return toResponseDTO(calificacion);
     }
 
     public List<CalificacionResponseDTO> findByHabitacion(Long habitacionId) {
@@ -119,7 +115,10 @@ public class CalificacionService implements ApplicationEventPublisherAware {
         publisher.publishEvent(new ActualizacionPromedioEvent(this, calificacion.getReceptor().getArrendador().getId()));
     }
 
+    // En la entidad la habitación se llama "receptor", por eso ModelMapper no llena habitacionId
     private CalificacionResponseDTO toResponseDTO(Calificacion c) {
-        return modelMapper.map(c, CalificacionResponseDTO.class);
+        CalificacionResponseDTO dto = modelMapper.map(c, CalificacionResponseDTO.class);
+        dto.setHabitacionId(c.getReceptor().getId());
+        return dto;
     }
 }

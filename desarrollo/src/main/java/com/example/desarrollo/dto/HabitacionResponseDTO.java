@@ -13,6 +13,7 @@ import lombok.Setter;
 public class HabitacionResponseDTO {
     private Long id;
     private String direccion;
+    private Double precio;
     private Double longitud;
     private Double latitud;
     private Boolean esDestacada;

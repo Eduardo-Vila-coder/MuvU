@@ -1573,7 +1573,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 30.0,\n  \"metodoDePago\": \"TARJETA_CREDITO\"\n}",
+              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1616,7 +1616,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 40.0,\n  \"metodoDePago\": \"TARJETA_CREDITO\"\n}",
+              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 40.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1659,7 +1659,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 30.0,\n  \"metodoDePago\": \"TARJETA_CREDITO\"\n}",
+              "raw": "{\n  \"habitacionId\": \"{{habitacionId}}\",\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

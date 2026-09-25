@@ -11,4 +11,6 @@ public interface PagoPublicidadRepository extends JpaRepository<PagoPublicidad, 
 
     @EntityGraph(attributePaths = "habitacion")
     List<PagoPublicidad> findByFechaFinBefore(LocalDate fecha);
+
+    List<PagoPublicidad> findByHabitacionArrendadorId(Long arrendadorId);
 }
