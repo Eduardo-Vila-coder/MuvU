@@ -39,11 +39,15 @@ public class Reserva {
     @JoinColumn(name = "habitacion_id", nullable = false)
     private Habitacion habitacion;
 
-    public Reserva(LocalDate fecha_fin, Estudiante estudiante, Habitacion habitacion) {
-        this.fecha_inicio = LocalDate.now();
+    public Reserva(LocalDate fecha_inicio, LocalDate fecha_fin, Estudiante estudiante, Habitacion habitacion) {
+        this.fecha_inicio = fecha_inicio;
         this.fecha_fin = fecha_fin;
         this.estado = Estado.PENDIENTE;
         this.estudiante = estudiante;
         this.habitacion = habitacion;
+    }
+
+    public boolean seCruzaCon(LocalDate inicio, LocalDate fin) {
+        return fecha_inicio.isBefore(fin) && inicio.isBefore(fecha_fin);
     }
 }
