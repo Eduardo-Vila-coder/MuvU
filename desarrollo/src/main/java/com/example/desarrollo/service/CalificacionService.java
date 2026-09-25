@@ -5,7 +5,6 @@ import com.example.desarrollo.Events.ActualizacionPromedioEvent;
 import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import com.example.desarrollo.exceptions.DuplicateResourceException;
 import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
@@ -26,21 +25,15 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CalificacionService implements ApplicationEventPublisherAware {
+public class CalificacionService {
 
-    private ApplicationEventPublisher publisher;
     private final CalificacionRepository calificacionRepository;
     private final ModelMapper modelMapper;
     private final EstudianteRepository estudianteRepository;
     private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
     private final UsuarioService usuarioService;
-
-
-    @Override
-    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
-        this.publisher = publisher;
-    }
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public CalificacionResponseDTO create(CalificacionRequestDTO dto) {
