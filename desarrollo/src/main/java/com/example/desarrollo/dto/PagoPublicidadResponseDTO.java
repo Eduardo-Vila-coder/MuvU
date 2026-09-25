@@ -16,7 +16,7 @@ public class PagoPublicidadResponseDTO {
     private Long id;
     private Long habitacionId;
     private Double monto;
-    private MetodoPago metodoDePago;
+    private MetodoPago metodoPago;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
 }

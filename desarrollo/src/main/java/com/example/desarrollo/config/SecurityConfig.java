@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/universidad").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/universidad/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/arrendador/*/verificar").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/estudiantes").hasAuthority("ADMIN")
 
                         // ===== Borrar cuentas y calificaciones: el dueño o el ADMIN podria hacerlo =====
                         .requestMatchers(HttpMethod.DELETE, "/estudiantes/**").hasAnyAuthority("ESTUDIANTE", "ADMIN")

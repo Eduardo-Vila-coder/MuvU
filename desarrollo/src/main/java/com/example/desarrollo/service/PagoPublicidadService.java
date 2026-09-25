@@ -60,13 +60,13 @@ public class PagoPublicidadService {
         habitacionRepository.save(habitacion);
 
         // 5. Creamos y guardamos el registro de PagoPublicidad con sus fechas calculadas
-        PagoPublicidad pago = modelMapper.map(requestDTO, PagoPublicidad.class);
+        // Se arma a mano: ModelMapper copiaba "habitacionId" también al "id" del pago
+        PagoPublicidad pago = new PagoPublicidad();
         pago.setHabitacion(habitacion);
-
-        // --- Calculamos las fechas ---
+        pago.setMonto(requestDTO.getMonto());
+        pago.setMetodoPago(requestDTO.getMetodoPago());
         pago.setFechaInicio(fechaInicio);
         pago.setFechaFin(fechaFin);
-        // ---------------------------------------------
 
         pago = pagoPublicidadRepository.save(pago);
 
@@ -79,16 +79,10 @@ public class PagoPublicidadService {
         return modelMapper.map(pago, PagoPublicidadResponseDTO.class);
     }
 
+    // Cada arrendador solo ve los pagos de sus propias habitaciones
     public List<PagoPublicidadResponseDTO> listarTodos() {
-        return pagoPublicidadRepository.findAll().stream()
-                .map(pago -> {
-                    PagoPublicidadResponseDTO dto = modelMapper.map(pago, PagoPublicidadResponseDTO.class);
-                    if (pago.getHabitacion() != null) {
-                        dto.setHabitacionId(pago.getHabitacion().getId());
-                    }
-                    dto.setMetodoDePago(pago.getMetodoPago()); // <-- Asignación explícita
-                    return dto;
-                })
+        return pagoPublicidadRepository.findByHabitacionArrendadorId(usuarioService.getIdUsuarioActual()).stream()
+                .map(pago -> modelMapper.map(pago, PagoPublicidadResponseDTO.class))
                 .toList();
     }
 

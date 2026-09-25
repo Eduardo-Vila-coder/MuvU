@@ -26,5 +26,5 @@ public class PagoPublicidadRequestDTO {
 
     @NotNull(message = "El método de pago es obligatorio")
     @Enumerated(EnumType.STRING)
-    private MetodoPago metodoDePago;
+    private MetodoPago metodoPago;
 }
