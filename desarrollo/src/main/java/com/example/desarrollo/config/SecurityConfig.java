@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // ===== Públicos =====
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/habitacion/**", "/universidad/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/calificaciones/habitacion/**").permitAll()
@@ -63,6 +64,7 @@ public class SecurityConfig {
                         // ===== Solo ADMIN =====
                         .requestMatchers(HttpMethod.POST, "/universidad").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/universidad/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/arrendador/*/verificar").hasAuthority("ADMIN")
 
                         // ===== Borrar cuentas y calificaciones: el dueño o el ADMIN podria hacerlo =====
                         .requestMatchers(HttpMethod.DELETE, "/estudiantes/**").hasAnyAuthority("ESTUDIANTE", "ADMIN")
@@ -72,6 +74,8 @@ public class SecurityConfig {
                         // ===== Solo ARRENDADOR =====
                         .requestMatchers(HttpMethod.POST, "/habitacion").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.PATCH, "/habitacion/**").hasAuthority("ARRENDADOR")
+                        .requestMatchers(HttpMethod.PUT, "/habitacion/**").hasAuthority("ARRENDADOR")
+                        .requestMatchers(HttpMethod.PUT, "/arrendador/**").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.DELETE, "/habitacion/**").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.POST, "/habitacion/*/imagenes").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.DELETE, "/imagenes/**").hasAuthority("ARRENDADOR")
