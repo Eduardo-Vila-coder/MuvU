@@ -2,6 +2,7 @@ package com.example.desarrollo.controller;
 
 import com.example.desarrollo.dto.*;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
+import com.example.desarrollo.dto.Logueo.RefreshTokenRequestDTO;
 import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
 import com.example.desarrollo.service.AuthService;
 import jakarta.validation.Valid;
@@ -30,5 +31,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDTO> login(@Valid @RequestBody LoginRequestDTO dto) {
         return ResponseEntity.ok(authService.login(dto));
+    }
+
+    // Cambia un refresh token válido por un access token nuevo (sin volver a pedir la contraseña)
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponseDTO> refresh(@Valid @RequestBody RefreshTokenRequestDTO dto) {
+        return ResponseEntity.ok(authService.refresh(dto));
     }
 }
