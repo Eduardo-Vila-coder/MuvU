@@ -4,85 +4,120 @@ import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
-import com.example.desarrollo.model.Estado;
-import com.example.desarrollo.model.Estudiante;
-import com.example.desarrollo.model.Habitacion;
-import com.example.desarrollo.model.Reserva;
+import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.EstudianteRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
 import com.example.desarrollo.repository.ReservaRepository;
 import com.example.desarrollo.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.modelmapper.ModelMapper;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ReservaService {
+    private final UsuarioRepository usuarioRepository;
+    private final ReservaRepository reservaRepository;
     private final HabitacionRepository habitacionRepository;
     private final EstudianteRepository estudianteRepository;
     private final UsuarioService usuarioService;
-    private final ReservaRepository reservaRepository;
-    private final ModelMapper modelMapper;
 
-    @Autowired
-    public ReservaService(ReservaRepository reservaRepository, ModelMapper modelMapper,
-                          HabitacionRepository habitacionRepository, EstudianteRepository estudianteRepository, UsuarioService usuarioService) {
-        this.reservaRepository=reservaRepository;
-        this.modelMapper=modelMapper;
-        this.habitacionRepository=habitacionRepository;
-        this.estudianteRepository=estudianteRepository;
-        this.usuarioService =  usuarioService;
+    public ReservaResponseDTO findById(Long id) {
+        Reserva reserva = buscarReserva(id);
+        Long miId = usuarioService.getIdUsuarioActual();
+
+        boolean soyElEstudiante = reserva.getEstudiante() != null
+                && reserva.getEstudiante().getId().equals(miId);
+        boolean soyElDueno = reserva.getHabitacion().getArrendador().getId().equals(miId);
+
+        if (!soyElEstudiante && !soyElDueno) {
+            throw new AccessDeniedException("No tienes acceso a esta reserva");
+        }
+        return toDTO(reserva);
     }
 
-    public Reserva findById(Long id){
-        return reservaRepository.findById(id).orElse(null);
-    }
+    public List<ReservaResponseDTO> findMisReservas() {
+        Long miId = usuarioService.getIdUsuarioActual();
+        Usuario yo = usuarioRepository.findById(miId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-    public List<Reserva> findAll(){
-        return reservaRepository.findAll();
-    }
+        List<Reserva> reservas = switch (yo.getRol()) {
+            case ESTUDIANTE -> reservaRepository.findByEstudianteId(miId);
+            case ARRENDADOR -> reservaRepository.findByHabitacionArrendadorId(miId);
+            case ADMIN      -> reservaRepository.findAll();
+        };
 
-    public ReservaResponseDTO createReserva(ReservaRequestDTO dto) {
-        Estudiante yo = estudianteRepository.findById(usuarioService.getIdUsuarioActual())
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontro estudiante con id: " +  usuarioService.getIdUsuarioActual()));
-
-        Habitacion habitacion = habitacionRepository.findById(dto.getHabitacionId())
-                .orElseThrow(() -> new ResourceNotFoundException("No se encontro habitacion con id: " +  dto.getHabitacionId()));
-
-        Reserva reserva = new Reserva(dto.getFecha_fin(), yo, habitacion);
-        reserva = reservaRepository.save(reserva);
-        return modelMapper.map(reserva, ReservaResponseDTO.class);
+        return reservas.stream().map(this::toDTO).toList();
     }
 
     @Transactional
-    public ReservaResponseDTO cancelReserva(Long id){
-        Reserva reserva=reservaRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No existe reserva con el ID:"+id));
-        if(reserva.getEstado()==Estado.CANCELADO){
-            throw new ReservaInvalidStateException("No se puede cancelar una reserva ya cancelada");
+    public ReservaResponseDTO createReserva(ReservaRequestDTO dto) {
+        Long miId = usuarioService.getIdUsuarioActual();
+        Estudiante yo = estudianteRepository.findById(miId)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro estudiante con id: " + miId));
+
+        Habitacion habitacion = habitacionRepository.findById(dto.getHabitacionId())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro habitacion con id: " + dto.getHabitacionId()));
+
+        Reserva reserva = new Reserva(dto.getFecha_fin(), yo, habitacion);
+        return toDTO(reservaRepository.save(reserva));
+    }
+
+    // Solo el estudiante que hizo la reserva puede cancelarla
+    @Transactional
+    public ReservaResponseDTO cancelReserva(Long id) {
+        Reserva reserva = buscarReserva(id);
+
+        if (reserva.getEstudiante() == null
+                || !reserva.getEstudiante().getId().equals(usuarioService.getIdUsuarioActual())) {
+            throw new AccessDeniedException("Solo el estudiante que hizo la reserva puede cancelarla");
         }
-        else if(reserva.getEstado()==Estado.CANCELADO){
+        if (reserva.getEstado() == Estado.CANCELADO) {
+            throw new ReservaInvalidStateException("No se puede cancelar una reserva ya cancelada");
+        } else if (reserva.getEstado() == Estado.CONFIRMADO) {
             throw new ReservaInvalidStateException("No se puede cancelar una reserva ya confirmada");
         }
 
         reserva.setEstado(Estado.CANCELADO);
-        Reserva newReserva=reservaRepository.save(reserva);
-        return modelMapper.map(newReserva,ReservaResponseDTO.class);
+        return toDTO(reservaRepository.save(reserva));
     }
 
+    // Solo el arrendador dueño de la habitación puede confirmar
     @Transactional
-    public ReservaResponseDTO confirmReserva(Long id){
-        Reserva reserva=reservaRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("No existe reserva con el ID:"+id));
-        if(reserva.getEstado()==Estado.CANCELADO){
-            throw new ReservaInvalidStateException("No se puede confirmar una reserva ya cancelada");
+    public ReservaResponseDTO confirmReserva(Long id) {
+        Reserva reserva = buscarReserva(id);
+
+        if (!reserva.getHabitacion().getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
+            throw new AccessDeniedException("Solo el dueño de la habitación puede confirmar la reserva");
         }
-        else if(reserva.getEstado()==Estado.CONFIRMADO){
+        if (reserva.getEstado() == Estado.CANCELADO) {
+            throw new ReservaInvalidStateException("No se puede confirmar una reserva ya cancelada");
+        } else if (reserva.getEstado() == Estado.CONFIRMADO) {
             throw new ReservaInvalidStateException("No se puede confirmar una reserva ya confirmada");
         }
+
         reserva.setEstado(Estado.CONFIRMADO);
-        Reserva newReserva=reservaRepository.save(reserva);
-        return modelMapper.map(newReserva,ReservaResponseDTO.class);
+        return toDTO(reservaRepository.save(reserva));
+    }
+
+    // ---------- helpers ----------
+
+    private Reserva buscarReserva(Long id) {
+        return reservaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe reserva con el ID: " + id));
+    }
+
+    private ReservaResponseDTO toDTO(Reserva r) {
+        ReservaResponseDTO dto = new ReservaResponseDTO();
+        dto.setId(r.getId());
+        dto.setEstado(r.getEstado());
+        dto.setFecha_inicio(r.getFecha_inicio());
+        dto.setFecha_fin(r.getFecha_fin());
+        dto.setHabitacionId(r.getHabitacion() != null ? r.getHabitacion().getId() : null);
+        dto.setEstudianteId(r.getEstudiante() != null ? r.getEstudiante().getId() : null);
+        return dto;
     }
 }

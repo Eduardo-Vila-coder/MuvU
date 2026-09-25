@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.model.Rol;
 import com.example.desarrollo.model.Usuario;
 import com.example.desarrollo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -26,4 +29,13 @@ public class UsuarioService implements UserDetailsService {
         Usuario u = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return u.getId();
     }
+
+    public void validarQueSoyYo(Long id) {
+        Usuario yo = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (yo.getRol() == Rol.ADMIN) return; // El rol admin siempre tiene permisos
+        if (!yo.getId().equals(id)) {
+            throw new AccessDeniedException("No puedes modificar datos de otro usuario");
+        }
+    }
+
 }

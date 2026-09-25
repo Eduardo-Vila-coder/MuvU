@@ -5,6 +5,7 @@ import com.example.desarrollo.exceptions.ErrorDetails;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp",Instant.now());
         return problemDetail;
     }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorDetails> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request){
         String message = String.format("El método HTTP '%s' no está permitido para esta ruta. Métodos soportados: %s", ex.getMethod(), ex.getSupportedHttpMethods());
         ErrorDetails error = new ErrorDetails(
@@ -74,6 +76,24 @@ public class GlobalExceptionHandler {
     public ProblemDetail handlerAccessDenied(AccessDeniedException ex) {
         ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
         p.setTitle("Acceso denegado");
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handlerIllegalArgument(IllegalArgumentException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        p.setTitle("Solicitud inválida");
+        p.setProperty("timestamp", Instant.now());
+        return p;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handlerDataIntegrity(DataIntegrityViolationException ex) {
+        ProblemDetail p = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "No se puede completar la operación porque el registro está relacionado con otros datos");
+        p.setTitle("Conflicto de integridad de datos");
         p.setProperty("timestamp", Instant.now());
         return p;
     }

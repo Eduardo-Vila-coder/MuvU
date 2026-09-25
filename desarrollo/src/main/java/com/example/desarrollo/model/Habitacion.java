@@ -27,12 +27,10 @@ public class Habitacion {
     private String direccion;
 
     @Column(nullable = true)
-    @Positive
-    private double latitud; // Double
+    private Double latitud;
 
     @Column(nullable = true)
-    @Positive
-    private double longitud; // Double
+    private Double longitud;
 
     @Positive
     private double precio; // Double

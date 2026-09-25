@@ -12,6 +12,11 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Long
     Double findPromedioByReceptorId(@Param("usuarioId") Long usuarioId);
 
     long countByReceptorId(Long receptorId);
+
+    @Query("select avg(c.puntuacion) from Calificacion c where c.autor.id = :autorId")
+    Double findPromedioByAutorId(@Param("autorId") Long autorId);
+
+    long countByAutorId(Long autorId);
     boolean existsByReservaIdAndAutorId(Long reservaId, Long autorId);
 
     List<Calificacion> findByReceptorId(Long receptorId);

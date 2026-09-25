@@ -55,25 +55,39 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())   // para que funcione tu @CrossOrigin
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Públicos
+                        // ===== Públicos =====
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/habitacion/**", "/universidad/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/calificaciones/habitacion/**").permitAll()
 
-                        // Solo ARRENDADOR
+                        // ===== Solo ADMIN =====
+                        .requestMatchers(HttpMethod.POST, "/universidad").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/universidad/**").hasAuthority("ADMIN")
+
+                        // ===== Borrar cuentas y calificaciones: el dueño o el ADMIN podria hacerlo =====
+                        .requestMatchers(HttpMethod.DELETE, "/estudiantes/**").hasAnyAuthority("ESTUDIANTE", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/calificaciones/**").hasAnyAuthority("ESTUDIANTE", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/arrendador/**").hasAnyAuthority("ARRENDADOR", "ADMIN")
+
+                        // ===== Solo ARRENDADOR =====
                         .requestMatchers(HttpMethod.POST, "/habitacion").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.PATCH, "/habitacion/**").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.DELETE, "/habitacion/**").hasAuthority("ARRENDADOR")
+                        .requestMatchers(HttpMethod.POST, "/habitacion/*/imagenes").hasAuthority("ARRENDADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/imagenes/**").hasAuthority("ARRENDADOR")
                         .requestMatchers("/api/pagos-publicidad/**").hasAuthority("ARRENDADOR")
                         .requestMatchers(HttpMethod.GET, "/estudiantes/*/perfil").hasAuthority("ARRENDADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/reservas/*/confirmar").hasAuthority("ARRENDADOR")
 
-                        // Solo ESTUDIANTE
+                        // ===== Solo ESTUDIANTE =====
                         .requestMatchers(HttpMethod.POST, "/reservas").hasAuthority("ESTUDIANTE")
                         .requestMatchers(HttpMethod.PATCH, "/reservas/**").hasAuthority("ESTUDIANTE")
                         .requestMatchers(HttpMethod.POST, "/calificaciones").hasAuthority("ESTUDIANTE")
+                        .requestMatchers(HttpMethod.PUT, "/estudiantes/**").hasAuthority("ESTUDIANTE")
 
-                        // Lo demas lo puede hacer cualquier usuario logueado
+                        // === Cualquier usuario que se loguee ===
                         .anyRequest().authenticated()
+
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

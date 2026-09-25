@@ -4,10 +4,12 @@ import com.example.desarrollo.model.Estado;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservaResponseDTO {
@@ -15,4 +17,6 @@ public class ReservaResponseDTO {
     private Estado estado;
     private LocalDate fecha_fin;
     private LocalDate fecha_inicio;
+    private Long habitacionId;
+    private Long estudianteId;
 }

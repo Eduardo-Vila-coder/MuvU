@@ -30,6 +30,7 @@ public class EstudianteService {
     private final ModelMapper modelMapper;
     private final CalificacionRepository calificacionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService;
 
     // PUT (Actualizar estudiante)
     public EstudianteResponseDTO getById(Long id) {
@@ -45,6 +46,7 @@ public class EstudianteService {
     }
 
     public EstudianteResponseDTO updateEstudiante(Long id, EstudianteUpdateRequestDTO dto) {
+        usuarioService.validarQueSoyYo(id);
         Estudiante estudiante = estudianteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
 
@@ -70,14 +72,15 @@ public class EstudianteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Estudiante no encontrado"));
 
         EstudiantePerfilDTO perfil = modelMapper.map(estudiante, EstudiantePerfilDTO.class);
-        perfil.setPuntuacionPromedio(calificacionRepository.findPromedioByReceptorId(id));
-        perfil.setTotalCalificaciones(calificacionRepository.countByReceptorId(id));
+        perfil.setPuntuacionPromedio(calificacionRepository.findPromedioByAutorId(id));
+        perfil.setTotalCalificaciones(calificacionRepository.countByAutorId(id));
 
         return perfil;
     }
 
     // DELETE (Eliminar estudiante)
     public void delete(Long id) {
+        usuarioService.validarQueSoyYo(id);
         if (!estudianteRepository.existsById(id)) {
             throw new ResourceNotFoundException("Estudiante no encontrado");
         }

@@ -10,7 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImagenResponseDTO {
-
     private Long id;
     private String url;
     private Long habitacionId;

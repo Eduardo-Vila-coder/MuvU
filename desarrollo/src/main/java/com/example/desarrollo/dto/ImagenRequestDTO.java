@@ -3,12 +3,14 @@ package com.example.desarrollo.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import jakarta.validation.constraints.NotNull;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ImagenRequestDTO {
 
     //Vamos a requerir el ID; sin embargo, esta estará como un parametro...
