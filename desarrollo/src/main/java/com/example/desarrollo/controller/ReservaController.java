@@ -1,51 +1,46 @@
 package com.example.desarrollo.controller;
+
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
 import com.example.desarrollo.service.ReservaService;
 import jakarta.validation.Valid;
-import com.example.desarrollo.model.Reserva;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/reservas")
+@RequiredArgsConstructor
 public class ReservaController {
     private final ReservaService reservaService;
 
-    @Autowired
-    public ReservaController(ReservaService reservaService){
-        this.reservaService=reservaService;
-    }
-
     @GetMapping
-    public ResponseEntity<List<Reserva>> getALlReserva(){
-        List<Reserva> reservas=reservaService.findAll();
-        return ResponseEntity.ok(reservas);
+    public ResponseEntity<List<ReservaResponseDTO>> getMisReservas() {
+        return ResponseEntity.ok(reservaService.findMisReservas());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Reserva> getReservaById(@PathVariable Long id){
-        Reserva reserva= reservaService.findById(id);
-        if(reserva!=null){
-            return ResponseEntity.ok(reserva);
-        }else{
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ReservaResponseDTO> getReservaById(@PathVariable Long id) {
+        return ResponseEntity.ok(reservaService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<ReservaResponseDTO> createReserva(@Valid @RequestBody ReservaRequestDTO reservaRequestDTO){
-        ReservaResponseDTO reservaResponseDTO=reservaService.createReserva(reservaRequestDTO);
-        URI location = URI.create("reservas/"+reservaResponseDTO.getId());
+    public ResponseEntity<ReservaResponseDTO> createReserva(@Valid @RequestBody ReservaRequestDTO reservaRequestDTO) {
+        ReservaResponseDTO reservaResponseDTO = reservaService.createReserva(reservaRequestDTO);
+        URI location = URI.create("/reservas/" + reservaResponseDTO.getId());
         return ResponseEntity.created(location).body(reservaResponseDTO);
     }
 
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<ReservaResponseDTO> updateReserva(@PathVariable Long id){
-        ReservaResponseDTO reservaResponseDTO=reservaService.cancelReserva(id);
-        return ResponseEntity.ok(reservaResponseDTO);
+    public ResponseEntity<ReservaResponseDTO> updateReserva(@PathVariable Long id) {
+        return ResponseEntity.ok(reservaService.cancelReserva(id));
+    }
+
+    @PatchMapping("/{id}/confirmar")
+    public ResponseEntity<ReservaResponseDTO> confirmReserva(@PathVariable Long id) {
+        return ResponseEntity.ok(reservaService.confirmReserva(id));
     }
 }

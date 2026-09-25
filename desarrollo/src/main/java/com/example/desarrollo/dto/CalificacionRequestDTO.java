@@ -26,6 +26,4 @@ public class CalificacionRequestDTO {
     @NotNull
     private Long reservaId;
 
-    @NotNull
-    private Long receptorId;
 }

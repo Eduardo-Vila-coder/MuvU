@@ -1,6 +1,5 @@
 package com.example.desarrollo.dto;
 
-import com.example.desarrollo.model.Imagen;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,5 +23,5 @@ public class HabitacionDetailDTO {
 
     @NotNull
     private Integer area;
-    private List<Imagen> imagenes;
+    private List<ImagenResponseDTO> imagenes;
 }

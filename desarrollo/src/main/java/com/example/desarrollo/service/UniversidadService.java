@@ -2,6 +2,7 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.UniversidadRequestDTO;
 import com.example.desarrollo.dto.UniversidadResponseDTO;
+import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
@@ -78,6 +79,9 @@ public class UniversidadService {
 
     @Transactional
     public void deleteById(Long id) {
+        if (!universidadRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Universidad no encontrada con ID: " + id);
+        }
         universidadRepository.deleteById(id);
     }
 }

@@ -3,11 +3,10 @@ package com.example.desarrollo.service;
 import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
 import com.example.desarrollo.dto.HabitacionResponseDTO;
-import com.example.desarrollo.exceptions.ConflictException;
+import com.example.desarrollo.dto.ImagenResponseDTO;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.Arrendador;
 import com.example.desarrollo.model.Habitacion;
-import com.example.desarrollo.model.Imagen;
 import com.example.desarrollo.model.Universidad;
 import com.example.desarrollo.repository.ArrendadorRepository;
 import com.example.desarrollo.repository.HabitacionRepository;
@@ -16,6 +15,7 @@ import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +48,7 @@ public class HabitacionService {
 
         // 3. Mapear a DTO, calcular distancia Haversine, filtrar por radio y ordenar
         List<HabitacionResponseDTO> filtradas = todas.stream()
+                .filter(h -> h.getLatitud() != null && h.getLongitud() != null)
                 .map(habitacion -> {
                     double distancia = calcularHaversine(
                             universidad.getLatitud(), universidad.getLongitud(),
@@ -109,7 +110,11 @@ public class HabitacionService {
     public HabitacionDetailDTO findById(Long id) {
         Habitacion habitacion = habitacionRepository.findById(id).orElse(null);
         if (habitacion != null) {
-            return modelMapper.map(habitacion, HabitacionDetailDTO.class);
+            HabitacionDetailDTO dto = modelMapper.map(habitacion, HabitacionDetailDTO.class);
+            dto.setImagenes(habitacion.getImagenes().stream()
+                    .map(img -> new ImagenResponseDTO(img.getId(), img.getUrl(), habitacion.getId()))
+                    .toList());
+            return dto;
         }
         return null;
     }
@@ -123,6 +128,13 @@ public class HabitacionService {
     // Delete (DELETE)
     @Transactional
     public void deleteById(Long id) {
-        habitacionRepository.deleteById(id);
+
+        Habitacion habitacion = habitacionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + id));
+
+        if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
+            throw new AccessDeniedException("Solo el dueño puede eliminar esta habitación");
+        }
+        habitacionRepository.delete(habitacion);
     }
 }

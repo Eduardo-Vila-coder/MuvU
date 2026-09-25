@@ -2,6 +2,7 @@ package com.example.desarrollo.service;
 
 import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
+import org.springframework.security.access.AccessDeniedException;
 import com.example.desarrollo.exceptions.ConflictException;
 import com.example.desarrollo.exceptions.ReservaInvalidStateException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
@@ -39,7 +40,7 @@ public class CalificacionService {
 
 
         if (reserva.getEstudiante() == null || !reserva.getEstudiante().getId().equals(autor.getId())) {
-            throw new IllegalArgumentException("El estudiante con ID: " + autor.getId()
+            throw new AccessDeniedException("El estudiante con ID: " + autor.getId()
                     + " no es el titular de la reserva con ID: " + reserva.getId());
         }
 
@@ -51,18 +52,20 @@ public class CalificacionService {
             throw new ConflictException("La reserva con ID: " + reserva.getId() + " ya fue calificada");
         }
 
-        Calificacion newCalificacion = modelMapper.map(dto, Calificacion.class);
-
+        Calificacion newCalificacion = new Calificacion();
+        newCalificacion.setPuntuacion(dto.getPuntuacion());
+        newCalificacion.setDescripcion(dto.getDescripcion());
         newCalificacion.setReserva(reserva);
 
         newCalificacion.setAutor(autor);
 
-        Habitacion habitacion = habitacionRepository.findById(dto.getReceptorId())
-                .orElseThrow(() -> new ResourceNotFoundException("La habitacion a calificar no existe"));
+        Habitacion habitacion = reserva.getHabitacion();
         newCalificacion.setReceptor(habitacion);
-
         newCalificacion = calificacionRepository.save(newCalificacion);
-        return modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
+
+        CalificacionResponseDTO response = modelMapper.map(newCalificacion, CalificacionResponseDTO.class);
+        response.setHabitacionId(habitacion.getId());
+        return response;
     }
 
     public CalificacionResponseDTO findById(Long id) {
@@ -91,9 +94,10 @@ public class CalificacionService {
     }
 
     public void deleteById(Long id) {
-        if (!calificacionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("No existe calificacion con el ID: " + id);
-        }
+        Calificacion calificacion = calificacionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe calificacion con el ID: " + id));
+
+        usuarioService.validarQueSoyYo(calificacion.getAutor().getId());
         calificacionRepository.deleteById(id);
     }
 
