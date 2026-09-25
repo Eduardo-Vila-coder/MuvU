@@ -1,0 +1,3400 @@
+{
+  "info": {
+    "name": "MuvU - API REST v1",
+    "description": "API de **MuvU**: estudiantes universitarios encuentran y reservan habitaciones cerca de su universidad, y arrendadores las publican y destacan.\n\n**Cómo usarla**\n1. Levanta la base de datos (`docker compose up -d` en `desarrollo/`) y la app (`http://localhost:8081`). Al arrancar, `data.sql` carga los usuarios y datos de prueba.\n2. Importa este archivo en Postman.\n3. Ejecuta la colección completa con el **Runner** en orden: la carpeta *0. Auth* guarda los tokens y el resto los usa.\n\n**Autorización:** cada carpeta define su tipo (`No Auth` o `Bearer` con el token de su rol) y sus requests la heredan. La carpeta *5. Errores y seguridad* define la autorización en cada request.\n\n**Usuarios de prueba (data.sql):** `admin@muvu.com` / `admin123`, `rosa.quispe@muvu.com` / `Clave123!` (arrendadora), `ana.ramos@utec.edu.pe` / `Clave123!` (estudiante).\n\n**Servicios externos:** crear habitación y universidad usa Google Maps (`GOOGLE_MAPS_API_KEY`); pagar publicidad usa Stripe (`STRIPE_SECRET_KEY`); los correos usan Gmail (`MAIL_USERNAME`/`MAIL_PASSWORD`). Sin esas claves, esos requests fallan y el resto de la colección sigue funcionando.\n\n**Errores:** todas las respuestas de error tienen el formato `{timestamp, status, error, message, path}`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "0. Auth (público)",
+      "description": "Registro, inicio de sesión, renovación del token y recuperación de contraseña. No requieren token.",
+      "item": [
+        {
+          "name": "Login admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Inicia sesión con el administrador de `data.sql` y guarda `tokenAdmin`. El admin verifica arrendadores y gestiona universidades.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@muvu.com\",\n  \"contrasena\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"correo\": \"admin@muvu.com\",\n  \"contrasena\": \"admin123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ADMIN\",\n  \"id\": 1\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenAdmin\", pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login arrendador (Rosa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Inicia sesión con una arrendadora verificada de `data.sql` (dueña de las habitaciones 1 a 10). Guarda `tokenArrendador` y `arrendadorId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"rosa.quispe@muvu.com\",\n  \"contrasena\": \"Clave123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"correo\": \"rosa.quispe@muvu.com\",\n  \"contrasena\": \"Clave123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ARRENDADOR\",\n  \"id\": 2\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenArrendador\", pm.response.json().token);",
+                  "pm.collectionVariables.set(\"arrendadorId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login estudiante (Ana)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Inicia sesión con una estudiante de `data.sql`. Guarda `tokenEstudiante`, `estudianteId` y `refreshToken`. La respuesta trae el access token (1 h) y el refresh token (7 días).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"contrasena\": \"Clave123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"contrasena\": \"Clave123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ESTUDIANTE\",\n  \"id\": 8\n}"
+            },
+            {
+              "name": "401 Credenciales incorrectas",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/login",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"contrasena\": \"Clave123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Correo o contraseña incorrectos\",\n  \"path\": \"/api/v1/auth/login\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenEstudiante\", pm.response.json().token);",
+                  "pm.collectionVariables.set(\"estudianteId\", pm.response.json().id);",
+                  "pm.collectionVariables.set(\"refreshToken\", pm.response.json().refreshToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar estudiante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register/estudiante",
+            "description": "Crea una cuenta de estudiante. Exige correo institucional (`.edu.pe`) y contraseña fuerte (mayúscula, minúscula, número y símbolo). Envía un correo de bienvenida y devuelve los tokens. El correo se genera con la hora para poder repetir la prueba.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Luis Gómez Paredes\",\n  \"correo\": \"{{correoNuevoEstudiante}}\",\n  \"contrasena\": \"Clave123!\",\n  \"universidadId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/register/estudiante",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Luis Gómez Paredes\",\n  \"correo\": \"{{correoNuevoEstudiante}}\",\n  \"contrasena\": \"Clave123!\",\n  \"universidadId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ESTUDIANTE\",\n  \"id\": 16\n}"
+            },
+            {
+              "name": "400 Datos inválidos",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/register/estudiante",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Luis Gómez Paredes\",\n  \"correo\": \"{{correoNuevoEstudiante}}\",\n  \"contrasena\": \"Clave123!\",\n  \"universidadId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Datos inválidos\",\n  \"path\": \"/api/v1/auth/register/estudiante\",\n  \"errores\": {\n    \"contrasena\": \"La contraseña debe tener al menos una mayúscula, una minúscula, un número y un símbolo\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"correoNuevoEstudiante\", \"estudiante\" + Date.now() + \"@utec.edu.pe\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"estudianteNuevoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar arrendador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register/arrendador",
+            "description": "Crea una cuenta de arrendador. Queda **sin verificar**: no puede publicar habitaciones hasta que un admin lo verifique.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Julia Campos Ríos\",\n  \"correo\": \"{{correoNuevoArrendador}}\",\n  \"contrasena\": \"Clave123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/register/arrendador",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Julia Campos Ríos\",\n  \"correo\": \"{{correoNuevoArrendador}}\",\n  \"contrasena\": \"Clave123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ARRENDADOR\",\n  \"id\": 17\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"correoNuevoArrendador\", \"arrendador\" + Date.now() + \"@gmail.com\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"arrendadorNuevoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renovar token (refresh)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/refresh",
+            "description": "Cambia el refresh token por un access token nuevo sin volver a pedir la contraseña. También devuelve un refresh token nuevo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/refresh",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi...\",\n  \"rol\": \"ESTUDIANTE\",\n  \"id\": 8\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenEstudiante\", pm.response.json().token);",
+                  "pm.collectionVariables.set(\"refreshToken\", pm.response.json().refreshToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Olvidé mi contraseña",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/forgot-password",
+            "description": "Si el correo existe, envía por correo un token para restablecer la contraseña (vence en 15 min). Siempre responde 204, exista o no el correo, para no revelar qué correos están registrados.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"ana.ramos@utec.edu.pe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/forgot-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"correo\": \"ana.ramos@utec.edu.pe\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restablecer contraseña",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/reset-password",
+            "description": "Cambia la contraseña usando el token que llegó por correo. Para probarlo, reemplaza la variable `resetToken` por ese token (requiere `MAIL_USERNAME`/`MAIL_PASSWORD`). Con el valor de ejemplo responde 401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"nuevaContrasena\": \"NuevaClave1!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/reset-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"nuevaContrasena\": \"NuevaClave1!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "401 Token inválido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/reset-password",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"nuevaContrasena\": \"NuevaClave1!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"El token de recuperación es inválido o expiró\",\n  \"path\": \"/api/v1/auth/reset-password\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204 o 401\", () => pm.expect([204, 401]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "1. Público (sin token)",
+      "description": "Consultas abiertas: cualquier visitante puede buscar habitaciones y universidades.",
+      "item": [
+        {
+          "name": "Listar habitaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones?page=0&size=5",
+            "description": "Lista paginada de habitaciones. Las destacadas (con publicidad pagada) salen primero."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones?page=0&size=5"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 1,\n      \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n      \"precio\": 830.0,\n      \"longitud\": -77.0181,\n      \"latitud\": -12.1419,\n      \"esDestacada\": true,\n      \"distanciaKm\": null,\n      \"area\": 15\n    }\n  ],\n  \"page\": {\n    \"size\": 5,\n    \"number\": 0,\n    \"totalElements\": 50,\n    \"totalPages\": 10\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Habitaciones cercanas a una universidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/cercanas?universidadId={{universidadId}}&radioKm=3",
+            "description": "Busca habitaciones dentro de un radio (km, máximo 50) alrededor de una universidad. Ordena por destacadas y luego por distancia."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/cercanas?universidadId={{universidadId}}&radioKm=3"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 1,\n      \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n      \"precio\": 830.0,\n      \"longitud\": -77.0181,\n      \"latitud\": -12.1419,\n      \"esDestacada\": true,\n      \"distanciaKm\": 0.84,\n      \"area\": 15\n    }\n  ],\n  \"page\": {\n    \"size\": 5,\n    \"number\": 0,\n    \"totalElements\": 12,\n    \"totalPages\": 3\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle de habitación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}",
+            "description": "Detalle de una habitación con sus imágenes."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n  \"precio\": 830.0,\n  \"area\": 15,\n  \"imagenes\": [\n    {\n      \"id\": 1,\n      \"url\": \"https://picsum.photos/seed/muvu-1-1/800/600\",\n      \"habitacionId\": 1\n    }\n  ]\n}"
+            },
+            {
+              "name": "404 No existe",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Habitación no encontrada con ID: 99999\",\n  \"path\": \"/api/v1/habitaciones/99999\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Imágenes de una habitación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/imagenes",
+            "description": "Lista las imágenes de una habitación."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/imagenes"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"url\": \"https://picsum.photos/seed/muvu-1-1/800/600\",\n    \"habitacionId\": 1\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Calificaciones de una habitación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/calificaciones",
+            "description": "Reseñas que dejaron los estudiantes sobre una habitación. Ayuda a otros estudiantes a decidir."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/calificaciones"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"puntuacion\": 5,\n    \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n    \"autorId\": 8,\n    \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n    \"habitacionId\": 1,\n    \"reservaId\": 1\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar universidades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/universidades",
+            "description": "Universidades disponibles; se usan al registrarse y para buscar habitaciones cercanas."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/universidades"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"nombre\": \"UTEC\",\n    \"direccion\": \"Jr. Medrano Silva 165, Barranco, Lima\",\n    \"longitud\": -77.0221,\n    \"latitud\": -12.1352\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle de universidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/universidades/{{universidadId}}",
+            "description": "Datos de una universidad, incluidas sus coordenadas."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/universidades/{{universidadId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"nombre\": \"UTEC\",\n  \"direccion\": \"Jr. Medrano Silva 165, Barranco, Lima\",\n  \"longitud\": -77.0221,\n  \"latitud\": -12.1352\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "noauth"
+      }
+    },
+    {
+      "name": "2. Admin",
+      "description": "Acciones del administrador. Heredan `Bearer {{tokenAdmin}}`.",
+      "item": [
+        {
+          "name": "Listar estudiantes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estudiantes?page=0&size=5",
+            "description": "Lista paginada de estudiantes. Solo ADMIN, porque incluye correos."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/estudiantes?page=0&size=5"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 8,\n      \"nombre\": \"Ana Lucía Ramos Pérez\",\n      \"correo\": \"ana.ramos@utec.edu.pe\",\n      \"verificado\": true,\n      \"universidadNombre\": \"UTEC\"\n    }\n  ],\n  \"page\": {\n    \"size\": 5,\n    \"number\": 0,\n    \"totalElements\": 9,\n    \"totalPages\": 2\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar arrendador",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorPendienteId}}/verificar",
+            "description": "Aprueba a un arrendador después de revisar su DNI (en `data.sql` el id 7 está sin verificar). Le envía un correo. Solo un arrendador verificado puede publicar habitaciones."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{baseUrl}}/arrendadores/{{arrendadorPendienteId}}/verificar"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 7,\n  \"nombre\": \"Pedro Salas Gutiérrez\",\n  \"correo\": \"pedro.salas@muvu.com\",\n  \"verificado\": true,\n  \"puntajePromedio\": 0.0,\n  \"totalCalificaciones\": 0,\n  \"cantidadHabitaciones\": 0\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Queda verificado\", () => pm.expect(pm.response.json().verificado).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear universidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/universidades",
+            "description": "Registra una universidad; sus coordenadas se obtienen con Google Maps (requiere `GOOGLE_MAPS_API_KEY`). Responde 201 con el header `Location`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"{{nombreUniversidad}}\",\n  \"direccion\": \"Panamericana Sur km 19, Villa El Salvador, Lima\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/universidades",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"{{nombreUniversidad}}\",\n  \"direccion\": \"Panamericana Sur km 19, Villa El Salvador, Lima\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 12,\n  \"nombre\": \"Universidad Científica del Sur\",\n  \"direccion\": \"Panamericana Sur km 19, Villa El Salvador, Lima\",\n  \"longitud\": -76.9716,\n  \"latitud\": -12.2186\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"nombreUniversidad\", \"Universidad Científica del Sur \" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"universidadNuevaId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar universidad",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/universidades/{{universidadNuevaId}}",
+            "description": "Elimina la universidad creada en el paso anterior."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/universidades/{{universidadNuevaId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"universidadNuevaId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar estudiante",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteNuevoId}}",
+            "description": "El admin elimina la cuenta del estudiante registrado en la carpeta Auth."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/estudiantes/{{estudianteNuevoId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"estudianteNuevoId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar arrendador",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorNuevoId}}",
+            "description": "El admin elimina la cuenta del arrendador registrado en la carpeta Auth."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/arrendadores/{{arrendadorNuevoId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"arrendadorNuevoId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenAdmin}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "3. Arrendador",
+      "description": "Acciones de la arrendadora Rosa (dueña de las habitaciones 1 a 10). Heredan `Bearer {{tokenArrendador}}`.",
+      "item": [
+        {
+          "name": "Ver arrendador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}",
+            "description": "Perfil público del arrendador con su puntaje promedio, total de calificaciones y cantidad de habitaciones (los recalculan los eventos)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 2,\n  \"nombre\": \"Rosa Quispe Huamán\",\n  \"correo\": \"rosa.quispe@muvu.com\",\n  \"verificado\": true,\n  \"puntajePromedio\": 4.5,\n  \"totalCalificaciones\": 2,\n  \"cantidadHabitaciones\": 10\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar mi perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}",
+            "description": "El arrendador actualiza su nombre y la foto de su DNI. Solo puede editar su propia cuenta.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Rosa Quispe Huamán\",\n  \"dniFoto\": \"https://muvu-demo.s3.amazonaws.com/dni/2.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Rosa Quispe Huamán\",\n  \"dniFoto\": \"https://muvu-demo.s3.amazonaws.com/dni/2.jpg\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 2,\n  \"nombre\": \"Rosa Quispe Huamán\",\n  \"correo\": \"rosa.quispe@muvu.com\",\n  \"verificado\": true,\n  \"puntajePromedio\": 4.5,\n  \"totalCalificaciones\": 2,\n  \"cantidadHabitaciones\": 10\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publicar habitación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/habitaciones",
+            "description": "Publica una habitación; la dirección se geocodifica con Google Maps (requiere `GOOGLE_MAPS_API_KEY`). El arrendador debe estar verificado. Responde 201 con el header `Location`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccion\": \"Av. Bolognesi 350, Barranco, Lima\",\n  \"precio\": 750.0,\n  \"area\": 14\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/habitaciones",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"direccion\": \"Av. Bolognesi 350, Barranco, Lima\",\n  \"precio\": 750.0,\n  \"area\": 14\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 51,\n  \"direccion\": \"Av. Bolognesi 350, Barranco, Lima\",\n  \"precio\": 750.0,\n  \"longitud\": -77.0181,\n  \"latitud\": -12.1419,\n  \"esDestacada\": false,\n  \"distanciaKm\": null,\n  \"area\": 14\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"habitacionNuevaId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar habitación",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}",
+            "description": "Actualiza precio y área. Si la dirección no cambia, no se vuelve a llamar a Google Maps. Solo el dueño puede editarla.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n  \"precio\": 850.0,\n  \"area\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n  \"precio\": 850.0,\n  \"area\": 15\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"direccion\": \"Jr. Colina 940 Dpto. 504, Barranco, Lima\",\n  \"precio\": 850.0,\n  \"longitud\": -77.0181,\n  \"latitud\": -12.1419,\n  \"esDestacada\": true,\n  \"distanciaKm\": null,\n  \"area\": 15\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar imagen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/imagenes",
+            "description": "Agrega una foto (URL) a una habitación propia.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://picsum.photos/seed/muvu-nueva/800/600\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/imagenes",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"url\": \"https://picsum.photos/seed/muvu-nueva/800/600\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 31,\n  \"url\": \"https://picsum.photos/seed/muvu-nueva/800/600\",\n  \"habitacionId\": 1\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"imagenId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar imagen",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/imagenes/{{imagenId}}",
+            "description": "Elimina la imagen agregada en el paso anterior."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/imagenes/{{imagenId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"imagenId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar habitación",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/{{habitacionNuevaId}}",
+            "description": "Elimina la habitación publicada en esta carpeta (se omite si no se pudo crear)."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/{{habitacionNuevaId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"habitacionNuevaId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservas de mis habitaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reservas",
+            "description": "El arrendador ve las reservas de sus habitaciones. El script guarda la primera PENDIENTE para confirmarla."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/reservas"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 11,\n    \"estado\": \"PENDIENTE\",\n    \"fecha_fin\": \"2027-01-23\",\n    \"fecha_inicio\": \"2026-10-25\",\n    \"habitacionId\": 2,\n    \"estudianteId\": 8\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "const pendiente = pm.response.json().find(r => r.estado === \"PENDIENTE\");",
+                  "pm.collectionVariables.set(\"reservaPendienteId\", pendiente ? pendiente.id : \"\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar reserva",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/reservas/{{reservaPendienteId}}/confirmar",
+            "description": "El dueño de la habitación acepta una reserva pendiente. Se envía un correo al estudiante."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{baseUrl}}/reservas/{{reservaPendienteId}}/confirmar"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 11,\n  \"estado\": \"CONFIRMADO\",\n  \"fecha_fin\": \"2027-01-23\",\n  \"fecha_inicio\": \"2026-10-25\",\n  \"habitacionId\": 2,\n  \"estudianteId\": 8\n}"
+            },
+            {
+              "name": "409 Estado inválido",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{baseUrl}}/reservas/{{reservaPendienteId}}/confirmar"
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"No se puede confirmar una reserva ya confirmada\",\n  \"path\": \"/api/v1/reservas/11/confirmar\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"reservaPendienteId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Perfil del estudiante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/perfil",
+            "description": "Antes de aceptar una reserva, el arrendador revisa el perfil del estudiante y su universidad."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/perfil"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 8,\n  \"nombre\": \"Ana Lucía Ramos Pérez\",\n  \"verificado\": true,\n  \"universidadId\": 1,\n  \"universidadNombre\": \"UTEC\",\n  \"puntuacionPromedio\": 5.0,\n  \"totalCalificaciones\": 1\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagar publicidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/pagos-publicidad",
+            "description": "Paga con Stripe (modo prueba) para destacar una habitación propia: 30 = 30 días, 54 = 60 días. Requiere `STRIPE_SECRET_KEY`. Envía un comprobante por correo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"habitacionId\": {{habitacionId}},\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/pagos-publicidad",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"habitacionId\": {{habitacionId}},\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 16,\n  \"habitacionId\": 1,\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\",\n  \"fechaInicio\": \"2026-09-25\",\n  \"fechaFin\": \"2026-10-25\"\n}"
+            },
+            {
+              "name": "400 Monto no permitido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/pagos-publicidad",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"habitacionId\": {{habitacionId}},\n  \"monto\": 30.0,\n  \"metodoPago\": \"TARJETA_CREDITO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Monto no permitido. Solo son 2 opciones disponibles\",\n  \"path\": \"/api/v1/pagos-publicidad\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mis pagos de publicidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/pagos-publicidad",
+            "description": "Historial de pagos de publicidad de las habitaciones del arrendador."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/pagos-publicidad"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"habitacionId\": 1,\n    \"monto\": 30.0,\n    \"metodoPago\": \"TARJETA_DEBITO\",\n    \"fechaInicio\": \"2026-09-17\",\n    \"fechaFin\": \"2026-10-17\"\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenArrendador}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Estudiante",
+      "description": "Acciones de la estudiante Ana. Heredan `Bearer {{tokenEstudiante}}`.",
+      "item": [
+        {
+          "name": "Mis reservas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reservas",
+            "description": "El estudiante ve sus propias reservas y su estado."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/reservas"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 9,\n    \"estado\": \"CONFIRMADO\",\n    \"fecha_fin\": \"2027-01-23\",\n    \"fecha_inicio\": \"2026-10-25\",\n    \"habitacionId\": 2,\n    \"estudianteId\": 8\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalle de reserva",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reservas/{{reservaParaCalificarId}}",
+            "description": "Detalle de una reserva propia (solo la ven el estudiante que reservó y el dueño de la habitación)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/reservas/{{reservaParaCalificarId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 9,\n  \"estado\": \"CONFIRMADO\",\n  \"fecha_fin\": \"2027-01-23\",\n  \"fecha_inicio\": \"2026-10-25\",\n  \"habitacionId\": 2,\n  \"estudianteId\": 8\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reservas",
+            "description": "Solicita una habitación entre dos fechas. Queda PENDIENTE hasta que el arrendador la confirme. Falla con 409 si se cruza con otra reserva pendiente o confirmada. Las fechas se calculan en el script.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha_inicio\": \"{{fechaInicio}}\",\n  \"fecha_fin\": \"{{fechaFin}}\",\n  \"habitacionId\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/reservas",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecha_inicio\": \"{{fechaInicio}}\",\n  \"fecha_fin\": \"{{fechaFin}}\",\n  \"habitacionId\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 17,\n  \"estado\": \"PENDIENTE\",\n  \"fecha_fin\": \"2027-01-23\",\n  \"fecha_inicio\": \"2026-10-25\",\n  \"habitacionId\": 5,\n  \"estudianteId\": 8\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = n => { const f = new Date(); f.setDate(f.getDate() + n); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set(\"fechaInicio\", d(200));",
+                  "pm.collectionVariables.set(\"fechaFin\", d(230));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"reservaNuevaId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancelar reserva",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/reservas/{{reservaNuevaId}}/cancelar",
+            "description": "El estudiante cancela su reserva mientras siga pendiente. Se avisa por correo al arrendador."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": "{{baseUrl}}/reservas/{{reservaNuevaId}}/cancelar"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 17,\n  \"estado\": \"CANCELADO\",\n  \"fecha_fin\": \"2027-01-23\",\n  \"fecha_inicio\": \"2026-10-25\",\n  \"habitacionId\": 5,\n  \"estudianteId\": 8\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"reservaNuevaId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Calificar reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones",
+            "description": "Califica (1 a 5) una reserva CONFIRMADA propia; solo una vez por reserva. Actualiza el promedio del arrendador con un evento.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntuacion\": 5,\n  \"descripcion\": \"Excelente trato y muy buena ubicación.\",\n  \"reservaId\": {{reservaParaCalificarId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/calificaciones",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"puntuacion\": 5,\n  \"descripcion\": \"Excelente trato y muy buena ubicación.\",\n  \"reservaId\": {{reservaParaCalificarId}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 9,\n  \"puntuacion\": 5,\n  \"descripcion\": \"Excelente trato y muy buena ubicación.\",\n  \"autorId\": 8,\n  \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n  \"habitacionId\": 11,\n  \"reservaId\": 9\n}"
+            },
+            {
+              "name": "409 Ya calificada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/calificaciones",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"puntuacion\": 5,\n  \"descripcion\": \"Excelente trato y muy buena ubicación.\",\n  \"reservaId\": {{reservaParaCalificarId}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"La reserva con ID: 9 ya fue calificada\",\n  \"path\": \"/api/v1/calificaciones\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"calificacionId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver calificación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/calificaciones/{{calificacionId}}",
+            "description": "Detalle de una calificación."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/calificaciones/{{calificacionId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 9,\n  \"puntuacion\": 5,\n  \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n  \"autorId\": 8,\n  \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n  \"habitacionId\": 11,\n  \"reservaId\": 9\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"calificacionId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mis calificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/calificaciones",
+            "description": "Calificaciones que escribió el estudiante."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/calificaciones"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"puntuacion\": 5,\n    \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n    \"autorId\": 8,\n    \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n    \"habitacionId\": 1,\n    \"reservaId\": 1\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar calificación",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/calificaciones/{{calificacionId}}",
+            "description": "El autor elimina su calificación (así la colección se puede volver a ejecutar)."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": "{{baseUrl}}/calificaciones/{{calificacionId}}"
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "body": ""
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"calificacionId\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver estudiante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}",
+            "description": "Datos básicos del estudiante."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/estudiantes/{{estudianteId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 8,\n  \"nombre\": \"Ana Lucía Ramos Pérez\",\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"verificado\": true,\n  \"universidadNombre\": \"UTEC\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar mi perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}",
+            "description": "El estudiante cambia su nombre o su universidad. Solo puede editar su propia cuenta.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana Lucía Ramos Pérez\",\n  \"universidadId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/estudiantes/{{estudianteId}}",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ana Lucía Ramos Pérez\",\n  \"universidadId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 8,\n  \"nombre\": \"Ana Lucía Ramos Pérez\",\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"verificado\": true,\n  \"universidadNombre\": \"UTEC\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{tokenEstudiante}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Errores y seguridad",
+      "description": "Casos de error y de seguridad con el código HTTP esperado (400, 401, 403, 404, 409).",
+      "item": [
+        {
+          "name": "401 - Sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reservas",
+            "description": "Una ruta protegida sin el header `Authorization` responde 401.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/reservas",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"Debes iniciar sesión: el token no se envió, es inválido o expiró\",\n  \"path\": \"/api/v1/reservas\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "401 - Refresh token inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/refresh",
+            "description": "Un refresh token alterado o vencido responde 401.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"token-invalido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/refresh",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"token-invalido\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 401,\n  \"error\": \"Unauthorized\",\n  \"message\": \"El refresh token es inválido o expiró\",\n  \"path\": \"/api/v1/auth/refresh\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "403 - Rol incorrecto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/universidades",
+            "description": "Un estudiante intenta una acción de ADMIN (`@PreAuthorize`).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Universidad X\",\n  \"direccion\": \"Av. Siempre Viva 123, Lima\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "403 Forbidden",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/universidades",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenEstudiante}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Universidad X\",\n  \"direccion\": \"Av. Siempre Viva 123, Lima\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"No tienes permisos para realizar esta acción\",\n  \"path\": \"/api/v1/universidades\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "403 - No es el dueño",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/habitaciones/11",
+            "description": "Rosa intenta editar una habitación de otro arrendador.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenArrendador}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"direccion\": \"Av. Caminos del Inca 1450, Santiago de Surco, Lima\",\n  \"precio\": 1.0,\n  \"area\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "403 Forbidden",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/habitaciones/11",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenArrendador}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"direccion\": \"Av. Caminos del Inca 1450, Santiago de Surco, Lima\",\n  \"precio\": 1.0,\n  \"area\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 403,\n  \"error\": \"Forbidden\",\n  \"message\": \"Solo el dueño puede modificar esta habitación\",\n  \"path\": \"/api/v1/habitaciones/11\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "400 - Validación de campos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register/estudiante",
+            "description": "Campos inválidos: responde 400 con el detalle de cada campo en `errores`.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"correo\": \"no-es-un-correo\",\n  \"contrasena\": \"123\",\n  \"universidadId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/register/estudiante",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"\",\n  \"correo\": \"no-es-un-correo\",\n  \"contrasena\": \"123\",\n  \"universidadId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Datos inválidos\",\n  \"path\": \"/api/v1/auth/register/estudiante\",\n  \"errores\": {\n    \"nombre\": \"El nombre es obligatorio\",\n    \"correo\": \"Debes usar tu correo institucional (.edu.pe)\",\n    \"contrasena\": \"La contraseña debe tener entre 8 y 64 caracteres\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "400 - JSON mal formado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Un cuerpo que no es JSON válido responde 400.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"correo\": ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/login",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"correo\": ",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"El cuerpo de la petición no es un JSON válido o tiene un tipo de dato incorrecto\",\n  \"path\": \"/api/v1/auth/login\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "404 - Recurso inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/habitaciones/99999",
+            "description": "Un id que no existe responde 404.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/habitaciones/99999",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Habitación no encontrada con ID: 99999\",\n  \"path\": \"/api/v1/habitaciones/99999\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "409 - Correo ya registrado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register/estudiante",
+            "description": "Registrar un correo existente responde 409.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana Ramos\",\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"contrasena\": \"Clave123!\",\n  \"universidadId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "409 Conflict",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/register/estudiante",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ana Ramos\",\n  \"correo\": \"ana.ramos@utec.edu.pe\",\n  \"contrasena\": \"Clave123!\",\n  \"universidadId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"El correo ana.ramos@utec.edu.pe ya está registrado\",\n  \"path\": \"/api/v1/auth/register/estudiante\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "409 - Fechas cruzadas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/reservas",
+            "description": "Reservar la habitación 1 en fechas ocupadas por otra reserva confirmada responde 409.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenEstudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha_inicio\": \"{{fechaCruceInicio}}\",\n  \"fecha_fin\": \"{{fechaCruceFin}}\",\n  \"habitacionId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "409 Conflict",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{baseUrl}}/reservas",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tokenEstudiante}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fecha_inicio\": \"{{fechaCruceInicio}}\",\n  \"fecha_fin\": \"{{fechaCruceFin}}\",\n  \"habitacionId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"timestamp\": \"2026-09-25T10:00:00\",\n  \"status\": 409,\n  \"error\": \"Conflict\",\n  \"message\": \"La habitación ya está reservada en esas fechas\",\n  \"path\": \"/api/v1/reservas\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = n => { const f = new Date(); f.setDate(f.getDate() + n); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set(\"fechaCruceInicio\", d(10));",
+                  "pm.collectionVariables.set(\"fechaCruceFin\", d(20));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081/api/v1",
+      "type": "string",
+      "description": "URL base de la API (versión 1)"
+    },
+    {
+      "key": "tokenAdmin",
+      "value": "",
+      "type": "string",
+      "description": "Lo guarda \"Login admin\""
+    },
+    {
+      "key": "tokenArrendador",
+      "value": "",
+      "type": "string",
+      "description": "Lo guarda \"Login arrendador (Rosa)\""
+    },
+    {
+      "key": "tokenEstudiante",
+      "value": "",
+      "type": "string",
+      "description": "Lo guarda \"Login estudiante (Ana)\" y se renueva con \"Renovar token\""
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string",
+      "description": "Refresh token de Ana (7 días)"
+    },
+    {
+      "key": "resetToken",
+      "value": "pega-aqui-el-token-del-correo",
+      "type": "string",
+      "description": "Token que llega por correo al usar \"Olvidé mi contraseña\""
+    },
+    {
+      "key": "arrendadorId",
+      "value": "",
+      "type": "string",
+      "description": "Id de Rosa (lo guarda el login)"
+    },
+    {
+      "key": "estudianteId",
+      "value": "",
+      "type": "string",
+      "description": "Id de Ana (lo guarda el login)"
+    },
+    {
+      "key": "universidadId",
+      "value": "1",
+      "type": "string",
+      "description": "UTEC en data.sql"
+    },
+    {
+      "key": "habitacionId",
+      "value": "1",
+      "type": "string",
+      "description": "Habitación de Rosa en data.sql"
+    },
+    {
+      "key": "arrendadorPendienteId",
+      "value": "7",
+      "type": "string",
+      "description": "Arrendador sin verificar en data.sql"
+    },
+    {
+      "key": "reservaParaCalificarId",
+      "value": "9",
+      "type": "string",
+      "description": "Reserva confirmada de Ana sin calificar en data.sql"
+    },
+    {
+      "key": "reservaPendienteId",
+      "value": "",
+      "type": "string",
+      "description": "La detecta \"Reservas de mis habitaciones\""
+    },
+    {
+      "key": "correoNuevoEstudiante",
+      "value": "",
+      "type": "string",
+      "description": "Generado en el pre-request"
+    },
+    {
+      "key": "correoNuevoArrendador",
+      "value": "",
+      "type": "string",
+      "description": "Generado en el pre-request"
+    },
+    {
+      "key": "estudianteNuevoId",
+      "value": "",
+      "type": "string",
+      "description": "Creado en Auth, eliminado en Admin"
+    },
+    {
+      "key": "arrendadorNuevoId",
+      "value": "",
+      "type": "string",
+      "description": "Creado en Auth, eliminado en Admin"
+    },
+    {
+      "key": "nombreUniversidad",
+      "value": "",
+      "type": "string",
+      "description": "Generado en el pre-request"
+    },
+    {
+      "key": "universidadNuevaId",
+      "value": "",
+      "type": "string",
+      "description": "Creada y eliminada en Admin"
+    },
+    {
+      "key": "habitacionNuevaId",
+      "value": "",
+      "type": "string",
+      "description": "Creada y eliminada en Arrendador"
+    },
+    {
+      "key": "imagenId",
+      "value": "",
+      "type": "string",
+      "description": "Creada y eliminada en Arrendador"
+    },
+    {
+      "key": "reservaNuevaId",
+      "value": "",
+      "type": "string",
+      "description": "Creada y cancelada en Estudiante"
+    },
+    {
+      "key": "calificacionId",
+      "value": "",
+      "type": "string",
+      "description": "Creada y eliminada en Estudiante"
+    },
+    {
+      "key": "fechaInicio",
+      "value": "",
+      "type": "string",
+      "description": "Calculada en el pre-request"
+    },
+    {
+      "key": "fechaFin",
+      "value": "",
+      "type": "string",
+      "description": "Calculada en el pre-request"
+    },
+    {
+      "key": "fechaCruceInicio",
+      "value": "",
+      "type": "string",
+      "description": "Calculada en el pre-request"
+    },
+    {
+      "key": "fechaCruceFin",
+      "value": "",
+      "type": "string",
+      "description": "Calculada en el pre-request"
+    }
+  ]
+}
