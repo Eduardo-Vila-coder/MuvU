@@ -1,30 +1,29 @@
 package com.example.desarrollo.dto;
 
-import com.example.desarrollo.model.Arrendador;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class HabitacionRequestDTO {
-    @NotBlank //@NotNull // en este caso el validador es para string
+
+    @NotBlank(message = "La dirección es obligatoria")
+    @Size(max = 255, message = "La dirección no puede superar 255 caracteres")
     private String direccion;
 
-    @NotNull
-    @Positive // para que sea positivo
-    private double precio;
+    @NotNull(message = "El precio es obligatorio")
+    @Positive(message = "El precio debe ser mayor a cero")
+    private Double precio;
 
-    @NotNull
-    @Positive // para que el area sea positiva
+    @NotNull(message = "El área es obligatoria")
+    @Positive(message = "El área debe ser mayor a cero")
     private Integer area;
-
 }
