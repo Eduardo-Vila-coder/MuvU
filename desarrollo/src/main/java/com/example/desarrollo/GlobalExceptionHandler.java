@@ -1,136 +1,115 @@
 package com.example.desarrollo;
 
-import com.example.desarrollo.exceptions.ConflictException;
-import com.example.desarrollo.exceptions.ErrorDetails;
+import com.example.desarrollo.dto.ErrorResponseDTO;
 import com.example.desarrollo.exceptions.MuvuException;
-import com.example.desarrollo.exceptions.ReservaInvalidStateException;
-import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import org.springframework.security.access.AccessDeniedException;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler({ReservaInvalidStateException.class})
-    public ProblemDetail handlerReservaInvalidState(ReservaInvalidStateException problem) {
-        ProblemDetail problemDetail=ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                problem.getMessage()
-        );
-        problemDetail.setTitle("Conflicto con el estado actual de reserva");
-        problemDetail.setProperty("timestamp", Instant.now());
-        return problemDetail;
-    }
-    @ExceptionHandler({ConflictException.class})// lo pondre como algo generico por si se quiere especificar no hay problema
-    public ProblemDetail handlerConflict(ConflictException conflict){
-        ProblemDetail problem= ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                conflict.getMessage()
-        );
-        problem.setTitle("Conflicto encontrado");
-        problem.setProperty("timestamp",Instant.now());
-        return problem;
-    }
 
-    @ExceptionHandler({ResourceNotFoundException.class})
-    public ProblemDetail handlerResourceNotFound(ResourceNotFoundException resourceNotFoundException){
-        ProblemDetail problemDetail= ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND,
-                resourceNotFoundException.getMessage()
-        );
-        problemDetail.setTitle("Recurso no encontrado");
-        problemDetail.setProperty("timestamp",Instant.now());
-        return problemDetail;
-    }
-
-    // Resto de excepciones propias (Forbidden, InvalidOperation, ExternalService, Payment): usan su propio status
+    // Todas las excepciones propias (NotFound, Conflict, Forbidden, InvalidOperation, ExternalService...): usan su propio status
     @ExceptionHandler(MuvuException.class)
-    public ProblemDetail handlerMuvu(MuvuException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
-        p.setTitle(ex.getStatus().getReasonPhrase());
-        p.setProperty("timestamp", Instant.now());
-        return p;
-    }
-
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorDetails> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request){
-        String message = String.format("El método HTTP '%s' no está permitido para esta ruta. Métodos soportados: %s", ex.getMethod(), ex.getSupportedHttpMethods());
-        ErrorDetails error = new ErrorDetails(
-                HttpStatus.METHOD_NOT_ALLOWED.value(),        // 405
-                HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase(), // "Method Not Allowed"
-                message,
-                request.getRequestURI(),                        // URI intentada
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ProblemDetail handlerBadCredentials(BadCredentialsException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
-        p.setTitle("Credenciales inválidas");
-        p.setProperty("timestamp", Instant.now());
-        return p;
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ProblemDetail handlerAccessDenied(AccessDeniedException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
-        p.setTitle("Acceso denegado");
-        p.setProperty("timestamp", Instant.now());
-        return p;
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ProblemDetail handlerIllegalArgument(IllegalArgumentException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        p.setTitle("Solicitud inválida");
-        p.setProperty("timestamp", Instant.now());
-        return p;
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail handlerDataIntegrity(DataIntegrityViolationException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(
-                HttpStatus.CONFLICT,
-                "No se puede completar la operación porque el registro está relacionado con otros datos");
-        p.setTitle("Conflicto de integridad de datos");
-        p.setProperty("timestamp", Instant.now());
-        return p;
-    }
-
-    // Fallos de servicios externos (Stripe, Google Maps, correo)
-    @ExceptionHandler(IllegalStateException.class)
-    public ProblemDetail handlerIllegalState(IllegalStateException ex) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
-        p.setTitle("Error en un servicio externo");
-        p.setProperty("timestamp", Instant.now());
-        return p;
+    public ResponseEntity<ErrorResponseDTO> handleMuvu(MuvuException ex, HttpServletRequest request) {
+        return build(ex.getStatus(), ex.getMessage(), request, null);
     }
 
     // Errores de @Valid en los DTOs: devuelve el mensaje de cada campo
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handlerValidacion(MethodArgumentNotValidException ex) {
-        Map<String, String> errores = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(e -> e.getField(), e -> e.getDefaultMessage(), (a, b) -> a));
+    public ResponseEntity<ErrorResponseDTO> handleValidacion(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors()
+                .forEach(e -> errores.putIfAbsent(e.getField(), e.getDefaultMessage()));
+        return build(HttpStatus.BAD_REQUEST, "Datos inválidos", request, errores);
+    }
 
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Datos inválidos");
-        p.setTitle("Error de validación");
-        p.setProperty("errores", errores);
-        p.setProperty("timestamp", Instant.now());
-        return p;
+    // Errores de validación en parámetros de la URL (@Min, @Positive en page, size, radioKm...)
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidacionParametros(HandlerMethodValidationException ex, HttpServletRequest request) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        ex.getParameterValidationResults().forEach(r -> errores.putIfAbsent(
+                r.getMethodParameter().getParameterName(),
+                r.getResolvableErrors().get(0).getDefaultMessage()));
+        return build(HttpStatus.BAD_REQUEST, "Parámetros inválidos", request, errores);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBodyIlegible(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST,
+                "El cuerpo de la petición no es un JSON válido o tiene un tipo de dato incorrecto", request, null);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTipoIncorrecto(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        String message = String.format("El valor '%s' no es válido para el parámetro '%s'", ex.getValue(), ex.getName());
+        return build(HttpStatus.BAD_REQUEST, message, request, null);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponseDTO> handleParametroFaltante(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        String message = String.format("Falta el parámetro obligatorio '%s'", ex.getParameterName());
+        return build(HttpStatus.BAD_REQUEST, message, request, null);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos", request, null);
+    }
+
+    // AccessDeniedException de Spring Security (por ejemplo, al fallar un @PreAuthorize)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "No tienes permisos para realizar esta acción", request, null);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        String message = String.format("El método HTTP '%s' no está permitido para esta ruta. Métodos soportados: %s",
+                ex.getMethod(), ex.getSupportedHttpMethods());
+        return build(HttpStatus.METHOD_NOT_ALLOWED, message, request, null);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT,
+                "No se puede completar la operación porque el registro está relacionado con otros datos", request, null);
+    }
+
+    // Cualquier error no previsto: no se exponen detalles internos al cliente, pero queda en el log
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleGenerico(Exception ex, HttpServletRequest request) {
+        // Excepciones de Spring MVC que ya traen su status (ruta inexistente 404, Content-Type no soportado 415...)
+        if (ex instanceof ErrorResponse errorResponse) {
+            HttpStatus status = HttpStatus.valueOf(errorResponse.getStatusCode().value());
+            return build(status, errorResponse.getBody().getDetail(), request, null);
+        }
+        log.error("Error no controlado en {}", request.getRequestURI(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor", request, null);
+    }
+
+    private ResponseEntity<ErrorResponseDTO> build(HttpStatus status, String message,
+                                                   HttpServletRequest request, Map<String, String> errores) {
+        ErrorResponseDTO body = new ErrorResponseDTO(LocalDateTime.now(), status.value(),
+                status.getReasonPhrase(), message, request.getRequestURI(), errores);
+        return ResponseEntity.status(status).body(body);
     }
 }
