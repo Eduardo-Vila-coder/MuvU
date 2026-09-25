@@ -5,8 +5,10 @@ import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
+import com.example.desarrollo.dto.Logueo.RefreshTokenRequestDTO;
 import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
 import com.example.desarrollo.exceptions.DuplicateResourceException;
+import com.example.desarrollo.exceptions.InvalidTokenException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.ArrendadorRepository;
@@ -51,7 +53,7 @@ public class AuthService {
         estudianteRepository.save(e);
         log.info("Estudiante {} registrado en la universidad {}", e.getId(), uni.getId());
         enviarBienvenida(e, "Ya puedes buscar y reservar habitaciones cerca de tu universidad.");
-        return new TokenResponseDTO(jwtService.generateToken(e), e.getRol().name(), e.getId());
+        return generarRespuesta(e);
     }
 
     @Transactional
@@ -67,7 +69,7 @@ public class AuthService {
         arrendadorRepository.save(a);
         log.info("Arrendador {} registrado, pendiente de verificación", a.getId());
         enviarBienvenida(a, "Un administrador revisará tu cuenta; cuando esté verificada podrás publicar tus habitaciones.");
-        return new TokenResponseDTO(jwtService.generateToken(a), a.getRol().name(), a.getId());
+        return generarRespuesta(a);
     }
 
     public TokenResponseDTO login(LoginRequestDTO dto) {
@@ -77,7 +79,23 @@ public class AuthService {
 
         Usuario u = usuarioRepository.findByCorreo(dto.getCorreo()).orElseThrow();
         log.info("Usuario {} inició sesión con rol {}", u.getId(), u.getRol());
-        return new TokenResponseDTO(jwtService.generateToken(u), u.getRol().name(), u.getId());
+        return generarRespuesta(u);
+    }
+
+    public TokenResponseDTO refresh(RefreshTokenRequestDTO dto) {
+        String refreshToken = dto.getRefreshToken();
+        if (!jwtService.isRefreshTokenValid(refreshToken)) {
+            throw new InvalidTokenException("El refresh token es inválido o expiró");
+        }
+        Usuario usuario = usuarioRepository.findById(jwtService.extractUserId(refreshToken))
+                .orElseThrow(() -> new InvalidTokenException("El usuario del token ya no existe"));
+        return generarRespuesta(usuario);
+    }
+
+    // Access token + refresh token nuevos (el refresh también se renueva)
+    private TokenResponseDTO generarRespuesta(Usuario usuario) {
+        return new TokenResponseDTO(jwtService.generateToken(usuario), jwtService.generateRefreshToken(usuario),
+                usuario.getRol().name(), usuario.getId());
     }
 
     private void enviarBienvenida(Usuario usuario, String mensaje) {

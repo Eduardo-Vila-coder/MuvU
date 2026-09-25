@@ -35,7 +35,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            if (jwtService.isTokenValid(token)
+            if (jwtService.isAccessTokenValid(token)
                     && SecurityContextHolder.getContext().getAuthentication() == null) {
                 try {
                     String correo = jwtService.extractUsername(token);

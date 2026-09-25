@@ -1,11 +1,12 @@
 package com.example.desarrollo.service;
 
+import com.example.desarrollo.model.Usuario;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,38 +16,70 @@ import java.util.Date;
 @Component
 public class JwtService {
 
+    private static final String TIPO_ACCESS = "access";
+    private static final String TIPO_REFRESH = "refresh";
+
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration}")
     private Long expiration;
 
+    @Value("${jwt.refresh-expiration}")
+    private Long refreshExpiration;
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(UserDetails user) {
+    public String generateToken(Usuario user) {
+        return buildToken(user, TIPO_ACCESS, expiration);
+    }
+
+    public String generateRefreshToken(Usuario user) {
+        return buildToken(user, TIPO_REFRESH, refreshExpiration);
+    }
+
+    // Solo acepta access tokens: un refresh token no sirve para llamar a la API
+    public boolean isAccessTokenValid(String token) {
+        return tieneTipo(token, TIPO_ACCESS);
+    }
+
+    public boolean isRefreshTokenValid(String token) {
+        return tieneTipo(token, TIPO_REFRESH);
+    }
+
+    public String extractUsername(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        return extractAllClaims(token).get("userId", Long.class);
+    }
+
+    private String buildToken(Usuario user, String tipo, long duracion) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(user.getUsername())
+                .claim("userId", user.getId())
                 .claim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
+                .claim("type", tipo)
                 .issuedAt(now)
-                .expiration(new Date(now.getTime() + expiration))
+                .expiration(new Date(now.getTime() + duracion))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public boolean isTokenValid(String token) {
+    // Firma inválida, token mal formado o expirado -> false
+    private boolean tieneTipo(String token, String tipo) {
         try {
-            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
-            return true;
+            return tipo.equals(extractAllClaims(token).get("type", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    public String extractUsername(String token) {
-        return Jwts.parser().verifyWith(getSigningKey()).build()
-                .parseSignedClaims(token).getPayload().getSubject();
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
     }
 }
