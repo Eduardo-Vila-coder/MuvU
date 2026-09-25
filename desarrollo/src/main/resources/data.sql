@@ -1,7 +1,10 @@
 -- =========================================================
--- Datos iniciales de MuvU (se cargan al arrancar la app)
--- Admin: admin@muvu.com / admin123
--- Arrendadores de prueba (todos verificados): contraseña Clave123!
+-- Datos iniciales de MuvU (se cargan al arrancar la app; la BD se recrea en cada arranque)
+-- Admin:        admin@muvu.com / admin123
+-- Arrendadores: rosa.quispe@muvu.com (y 4 más, verificados) / Clave123!
+--               pedro.salas@muvu.com (SIN verificar)         / Clave123!
+-- Estudiantes:  ana.ramos@utec.edu.pe (y 7 más)              / Clave123!
+-- La colección de Postman usa estos usuarios y algunos ids fijos (ver comentarios abajo).
 -- =========================================================
 
 -- ---------- Admin ----------
@@ -110,3 +113,108 @@ INSERT INTO pago_publicidad (habitacion_id, monto, metodo_pago, fecha_inicio, fe
 ((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1700 Dpto. 603, La Molina, Lima'), 30.0, 'TARJETA_DEBITO', CURRENT_DATE - 4, CURRENT_DATE + 26),
 ((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1770, La Molina, Lima'), 54.0, 'TARJETA_CREDITO', CURRENT_DATE - 35, CURRENT_DATE + 25),
 ((SELECT id FROM habitacion WHERE direccion = 'Jr. Las Retamas 1490, La Molina, Lima'), 30.0, 'TARJETA_CREDITO', CURRENT_DATE - 2, CURRENT_DATE + 28);
+
+-- ---------- Arrendador SIN verificar (id 7): para probar PATCH /arrendadores/{id}/verificar ----------
+INSERT INTO usuario (nombre, correo, contrasena, verificado, rol)
+VALUES ('Pedro Salas Gutiérrez', 'pedro.salas@muvu.com', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', false, 'ARRENDADOR');
+
+INSERT INTO arrendador (id, dni_foto, puntaje_promedio, total_calificaciones, cantidad_habitaciones)
+SELECT id, 'https://muvu-demo.s3.amazonaws.com/dni/' || id || '.jpg', 0.0, 0, 0
+FROM usuario WHERE correo = 'pedro.salas@muvu.com';
+
+-- ---------- Estudiantes (ids 8 a 15; ana.ramos = 8) ----------
+INSERT INTO usuario (nombre, correo, contrasena, verificado, rol) VALUES
+('Ana Lucía Ramos Pérez', 'ana.ramos@utec.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Diego Alonso Chávez Rojas', 'diego.chavez@utec.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Valeria Sofía Núñez Díaz', 'valeria.nunez@pucp.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Sebastián Torres Medina', 'sebastian.torres@pucp.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Camila Andrea Flores Vega', 'camila.flores@uni.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Matías Gonzalo Herrera León', 'matias.herrera@uni.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Fernanda Ruiz Castro', 'fernanda.ruiz@unmsm.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE'),
+('Renato Salazar Ortiz', 'renato.salazar@ulima.edu.pe', '$2a$10$kw6salxyT3B72bfEqTtIRuswSONQZliys1lmkxWNtV55/6EfsWtI.', true, 'ESTUDIANTE');
+
+INSERT INTO estudiante (id, universidad_id) VALUES
+((SELECT id FROM usuario WHERE correo = 'ana.ramos@utec.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'UTEC')),
+((SELECT id FROM usuario WHERE correo = 'diego.chavez@utec.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'UTEC')),
+((SELECT id FROM usuario WHERE correo = 'valeria.nunez@pucp.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'PUCP')),
+((SELECT id FROM usuario WHERE correo = 'sebastian.torres@pucp.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'PUCP')),
+((SELECT id FROM usuario WHERE correo = 'camila.flores@uni.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'UNI')),
+((SELECT id FROM usuario WHERE correo = 'matias.herrera@uni.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'UNI')),
+((SELECT id FROM usuario WHERE correo = 'fernanda.ruiz@unmsm.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'UNMSM')),
+((SELECT id FROM usuario WHERE correo = 'renato.salazar@ulima.edu.pe'), (SELECT id FROM universidad WHERE nombre = 'Universidad de Lima'));
+
+-- ---------- Imágenes (2 por habitación en 15 habitaciones) ----------
+INSERT INTO imagen (habitacion_id, url) VALUES
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Colina 940 Dpto. 504, Barranco, Lima'), 'https://picsum.photos/seed/muvu-1-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Colina 940 Dpto. 504, Barranco, Lima'), 'https://picsum.photos/seed/muvu-1-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Grau 1120 Dpto. 302, Barranco, Lima'), 'https://picsum.photos/seed/muvu-2-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Grau 1120 Dpto. 302, Barranco, Lima'), 'https://picsum.photos/seed/muvu-2-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Grau 200 Dpto. 404, Barranco, Lima'), 'https://picsum.photos/seed/muvu-3-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Grau 200 Dpto. 404, Barranco, Lima'), 'https://picsum.photos/seed/muvu-3-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Caminos del Inca 1450, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-4-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Caminos del Inca 1450, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-4-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1150, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-5-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1150, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-5-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1740, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-6-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1740, Santiago de Surco, Lima'), 'https://picsum.photos/seed/muvu-6-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1020 Dpto. 803, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-7-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1020 Dpto. 803, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-7-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Federico Gallese 1660, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-8-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Calle Federico Gallese 1660, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-8-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1190, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-9-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1190, San Miguel, Lima'), 'https://picsum.photos/seed/muvu-9-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Mariscal Miller 1070 Dpto. 702, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-10-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Mariscal Miller 1070 Dpto. 702, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-10-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1850 Dpto. 201, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-11-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1850 Dpto. 201, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-11-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1390, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-12-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1390, Jesús María, Lima'), 'https://picsum.photos/seed/muvu-12-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1700 Dpto. 603, La Molina, Lima'), 'https://picsum.photos/seed/muvu-13-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1700 Dpto. 603, La Molina, Lima'), 'https://picsum.photos/seed/muvu-13-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1770, La Molina, Lima'), 'https://picsum.photos/seed/muvu-14-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1770, La Molina, Lima'), 'https://picsum.photos/seed/muvu-14-2/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Las Retamas 1490, La Molina, Lima'), 'https://picsum.photos/seed/muvu-15-1/800/600'),
+((SELECT id FROM habitacion WHERE direccion = 'Jr. Las Retamas 1490, La Molina, Lima'), 'https://picsum.photos/seed/muvu-15-2/800/600');
+
+-- ---------- Reservas (ids 1 a 16, sin cruces de fechas en una misma habitación) ----------
+-- 1-8: confirmadas y ya calificadas | 9: confirmada SIN calificar (Postman la califica como ana.ramos)
+-- 10: confirmada futura | 11-14: pendientes (rosa.quispe confirma la 11) | 15-16: canceladas
+INSERT INTO reserva (fecha_inicio, fecha_fin, estado, estudiante_id, habitacion_id) VALUES
+(CURRENT_DATE - 120, CURRENT_DATE - 60, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'ana.ramos@utec.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Jr. Colina 940 Dpto. 504, Barranco, Lima')),
+(CURRENT_DATE - 150, CURRENT_DATE - 90, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'diego.chavez@utec.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Grau 1120 Dpto. 302, Barranco, Lima')),
+(CURRENT_DATE - 100, CURRENT_DATE - 40, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'valeria.nunez@pucp.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1020 Dpto. 803, San Miguel, Lima')),
+(CURRENT_DATE - 200, CURRENT_DATE - 140, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'sebastian.torres@pucp.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Calle Federico Gallese 1660, San Miguel, Lima')),
+(CURRENT_DATE - 90, CURRENT_DATE - 30, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'camila.flores@uni.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1850 Dpto. 201, Jesús María, Lima')),
+(CURRENT_DATE - 200, CURRENT_DATE - 120, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'fernanda.ruiz@unmsm.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Brasil 1850 Dpto. 201, Jesús María, Lima')),
+(CURRENT_DATE - 80, CURRENT_DATE - 20, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'renato.salazar@ulima.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1700 Dpto. 603, La Molina, Lima')),
+(CURRENT_DATE - 60, CURRENT_DATE - 10, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'matias.herrera@uni.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1150, Santiago de Surco, Lima')),
+(CURRENT_DATE - 70, CURRENT_DATE - 15, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'ana.ramos@utec.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Caminos del Inca 1450, Santiago de Surco, Lima')),
+(CURRENT_DATE + 5, CURRENT_DATE + 95, 'CONFIRMADO', (SELECT id FROM usuario WHERE correo = 'diego.chavez@utec.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Jr. Colina 940 Dpto. 504, Barranco, Lima')),
+(CURRENT_DATE + 30, CURRENT_DATE + 120, 'PENDIENTE', (SELECT id FROM usuario WHERE correo = 'ana.ramos@utec.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Grau 1120 Dpto. 302, Barranco, Lima')),
+(CURRENT_DATE + 10, CURRENT_DATE + 100, 'PENDIENTE', (SELECT id FROM usuario WHERE correo = 'valeria.nunez@pucp.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Universitaria 1020 Dpto. 803, San Miguel, Lima')),
+(CURRENT_DATE + 15, CURRENT_DATE + 75, 'PENDIENTE', (SELECT id FROM usuario WHERE correo = 'camila.flores@uni.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Calle Los Álamos 1150, Santiago de Surco, Lima')),
+(CURRENT_DATE + 20, CURRENT_DATE + 110, 'PENDIENTE', (SELECT id FROM usuario WHERE correo = 'sebastian.torres@pucp.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Javier Prado Este 1700 Dpto. 603, La Molina, Lima')),
+(CURRENT_DATE + 10, CURRENT_DATE + 40, 'CANCELADO', (SELECT id FROM usuario WHERE correo = 'matias.herrera@uni.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Calle Federico Gallese 1660, San Miguel, Lima')),
+(CURRENT_DATE + 5, CURRENT_DATE + 35, 'CANCELADO', (SELECT id FROM usuario WHERE correo = 'fernanda.ruiz@unmsm.edu.pe'), (SELECT id FROM habitacion WHERE direccion = 'Av. Caminos del Inca 1450, Santiago de Surco, Lima'));
+
+-- ---------- Calificaciones (sobre las reservas confirmadas 1 a 8) ----------
+INSERT INTO calificacion (puntuacion, descripcion, autor_id, receptor_id, reserva_id)
+SELECT v.puntuacion, v.descripcion, r.estudiante_id, r.habitacion_id, r.id
+FROM (VALUES
+    (1, 5, 'Muy buena ubicación, cerca de la universidad y la dueña fue muy amable.'),
+    (2, 4, 'Cuarto cómodo y limpio, el internet a veces falla.'),
+    (3, 5, 'Excelente, tal cual las fotos. La recomiendo.'),
+    (4, 3, 'Cumple, pero es un poco ruidosa en las noches.'),
+    (5, 4, 'Buena relación calidad-precio y buen transporte cerca.'),
+    (6, 5, 'Me quedé todo el ciclo, todo impecable.'),
+    (7, 4, 'Zona tranquila y segura, el cuarto es algo pequeño.'),
+    (8, 5, 'Muy iluminado y el arrendador responde rápido.')
+) AS v(reserva_id, puntuacion, descripcion)
+JOIN reserva r ON r.id = v.reserva_id;
+
+-- ---------- Estadísticas de los arrendadores (en la app las recalculan los eventos; aquí se cargan por SQL) ----------
+UPDATE arrendador a SET
+    puntaje_promedio = COALESCE((SELECT ROUND(AVG(c.puntuacion), 1) FROM calificacion c
+                                 JOIN habitacion h ON h.id = c.receptor_id WHERE h.arrendador_id = a.id), 0),
+    total_calificaciones = (SELECT COUNT(*) FROM calificacion c
+                            JOIN habitacion h ON h.id = c.receptor_id WHERE h.arrendador_id = a.id);
