@@ -26,4 +26,6 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Long
     List<Calificacion> findByReceptorId(Long receptorId);
 
     List<Calificacion> findByAutorId(Long autorId);
+
+    List<Calificacion> findByReceptorArrendadorId(Long arrendadorId);
 }
