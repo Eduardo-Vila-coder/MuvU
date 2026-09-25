@@ -14,7 +14,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/universidad")
+@RequestMapping("/api/v1/universidades")
 @RequiredArgsConstructor
 public class UniversidadController {
 
@@ -25,8 +25,6 @@ public class UniversidadController {
     public ResponseEntity<UniversidadResponseDTO> createUniversidad(
             @Valid @RequestBody UniversidadRequestDTO uniRequestDTO) {
         UniversidadResponseDTO uniResponseDTO = universidadService.createUniversidad(uniRequestDTO);
-
-        // Construcción segura del URI usando la ubicación actual y el ID
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(uniResponseDTO.getId())

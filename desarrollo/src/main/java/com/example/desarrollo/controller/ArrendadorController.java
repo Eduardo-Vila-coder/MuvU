@@ -5,21 +5,16 @@ import com.example.desarrollo.dto.ArrendadorResponseDTO;
 import com.example.desarrollo.dto.ArrendadorUpdateRequestDTO;
 import com.example.desarrollo.service.ArrendadorService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/arrendador")
+@RequestMapping("/api/v1/arrendadores")
+@RequiredArgsConstructor
 public class ArrendadorController {
     private final ArrendadorService arrendadorService;
-
-    @Autowired
-    public ArrendadorController(ArrendadorService arrendadorService) {
-        this.arrendadorService = arrendadorService;
-    }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<ArrendadorResponseDTO> getArrendadorById(@PathVariable Long id) {
@@ -43,6 +38,6 @@ public class ArrendadorController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArrendador(@PathVariable Long id) {
         arrendadorService.deleteById(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

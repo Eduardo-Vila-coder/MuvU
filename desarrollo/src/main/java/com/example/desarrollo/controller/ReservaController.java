@@ -8,12 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/reservas")
+@RequestMapping("/api/v1/reservas")
 @RequiredArgsConstructor
 public class ReservaController {
     private final ReservaService reservaService;
@@ -32,13 +33,16 @@ public class ReservaController {
     @PostMapping
     public ResponseEntity<ReservaResponseDTO> createReserva(@Valid @RequestBody ReservaRequestDTO reservaRequestDTO) {
         ReservaResponseDTO reservaResponseDTO = reservaService.createReserva(reservaRequestDTO);
-        URI location = URI.create("/reservas/" + reservaResponseDTO.getId());
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(reservaResponseDTO.getId())
+                .toUri();
         return ResponseEntity.created(location).body(reservaResponseDTO);
     }
 
     @PreAuthorize("hasAuthority('ESTUDIANTE')")
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<ReservaResponseDTO> updateReserva(@PathVariable Long id) {
+    public ResponseEntity<ReservaResponseDTO> cancelReserva(@PathVariable Long id) {
         return ResponseEntity.ok(reservaService.cancelReserva(id));
     }
 

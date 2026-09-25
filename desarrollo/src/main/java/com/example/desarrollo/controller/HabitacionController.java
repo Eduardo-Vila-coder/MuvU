@@ -21,19 +21,23 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/habitacion")
+@RequestMapping("/api/v1/habitaciones")
 @RequiredArgsConstructor
 public class HabitacionController {
 
     private final HabitacionService habitacionService;
 
-    // Nuevo Endpoint para buscar por cercanía y radio de universidad
+    // Habitaciones dentro de un radio (km) alrededor de una universidad
     @GetMapping("/cercanas")
     public ResponseEntity<Page<HabitacionResponseDTO>> getHabitacionesCercanas(
-            @RequestParam @Positive Long universidadId,
-            @RequestParam(defaultValue = "5.0") @Positive @DecimalMax("50.0") Double radioKm,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+            @RequestParam @Positive(message = "El ID de la universidad debe ser positivo") Long universidadId,
+            @RequestParam(defaultValue = "5.0")
+            @Positive(message = "El radio debe ser mayor a cero")
+            @DecimalMax(value = "50.0", message = "El radio no puede superar 50 km") Double radioKm,
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "La página no puede ser negativa") int page,
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "El tamaño de página debe ser al menos 1")
+            @Max(value = 100, message = "El tamaño de página no puede superar 100") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(habitacionService.findCercanas(universidadId, radioKm, pageable));
     }
@@ -58,8 +62,10 @@ public class HabitacionController {
 
     @GetMapping
     public ResponseEntity<Page<HabitacionResponseDTO>> getAllHabitaciones(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "La página no puede ser negativa") int page,
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "El tamaño de página debe ser al menos 1")
+            @Max(value = 100, message = "El tamaño de página no puede superar 100") int size) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }

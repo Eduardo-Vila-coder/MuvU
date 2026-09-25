@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pagos-publicidad")
+@RequestMapping("/api/v1/pagos-publicidad")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ARRENDADOR')")   // todo el controller es solo para arrendadores
 public class PagoPublicidadController {
@@ -24,7 +24,7 @@ public class PagoPublicidadController {
     @PostMapping
     public ResponseEntity<PagoPublicidadResponseDTO> registrarPago(@Valid @RequestBody PagoPublicidadRequestDTO requestDTO) {
         PagoPublicidadResponseDTO nuevoPago = pagoPublicidadService.registrarPago(requestDTO);
-        return new ResponseEntity<>(nuevoPago, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPago);
     }
 
 
