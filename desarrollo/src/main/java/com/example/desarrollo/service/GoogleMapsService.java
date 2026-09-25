@@ -24,14 +24,15 @@ public class GoogleMapsService {
     }
 
     public LatLng obtenerCoordenadas(String direccion) {
+        GeocodingResult[] results;
         try {
-            GeocodingResult[] results = GeocodingApi.geocode(context, direccion).await();
-            if (results != null && results.length > 0) {
-                return results[0].geometry.location;
-            }
-            throw new RuntimeException("No se encontraron coordenadas para la dirección ingresada: " + direccion);
+            results = GeocodingApi.geocode(context, direccion).await();
         } catch (Exception e) {
-            throw new RuntimeException("Error al consultar la API de Google Maps: " + e.getMessage(), e);
+            throw new IllegalStateException("Error al consultar la API de Google Maps: " + e.getMessage(), e);
         }
+        if (results == null || results.length == 0) {
+            throw new IllegalArgumentException("No se encontraron coordenadas para la dirección: " + direccion);
+        }
+        return results[0].geometry.location;
     }
 }

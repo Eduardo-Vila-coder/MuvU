@@ -54,13 +54,6 @@ public class EstudianteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrado"));
 
         estudiante.setNombre(dto.getNombre());
-
-        if (!estudiante.getCorreo().equals(dto.getCorreo())
-                && usuarioRepository.existsByCorreo(dto.getCorreo())) {
-            throw new ConflictException("El correo ya está en uso");
-        }
-
-        estudiante.setCorreo(dto.getCorreo());
         estudiante.setUniversidad(universidad);
 
         return modelMapper.map(estudianteRepository.save(estudiante), EstudianteResponseDTO.class);
