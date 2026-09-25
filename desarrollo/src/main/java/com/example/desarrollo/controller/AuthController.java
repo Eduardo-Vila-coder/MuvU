@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -20,12 +20,12 @@ public class AuthController {
 
     @PostMapping("/register/estudiante")
     public ResponseEntity<TokenResponseDTO> registerEstudiante(@Valid @RequestBody EstudianteRequestDTO dto) {
-        return new ResponseEntity<>(authService.registerEstudiante(dto), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerEstudiante(dto));
     }
 
     @PostMapping("/register/arrendador")
     public ResponseEntity<TokenResponseDTO> registerArrendador(@Valid @RequestBody ArrendadorRequestDTO dto) {
-        return new ResponseEntity<>(authService.registerArrendador(dto), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerArrendador(dto));
     }
 
     @PostMapping("/login")

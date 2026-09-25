@@ -18,7 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import java.util.List;
 
 @RestController
-@RequestMapping("/estudiantes")
+@RequestMapping("/api/v1/estudiantes")
 @RequiredArgsConstructor
 public class EstudianteController {
     private final EstudianteService estudianteService;

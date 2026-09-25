@@ -7,7 +7,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8081"
+      "value": "http://localhost:8081/api/v1"
     },
     {
       "key": "tokenAdmin",
@@ -169,7 +169,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion",
+            "url": "{{baseUrl}}/habitaciones",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -207,7 +207,7 @@
           "request": {
             "method": "PATCH",
             "header": [],
-            "url": "{{baseUrl}}/arrendador/{{arrendadorId}}/verificar",
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}/verificar",
             "auth": {
               "type": "noauth"
             }
@@ -229,7 +229,7 @@
           "request": {
             "method": "PATCH",
             "header": [],
-            "url": "{{baseUrl}}/arrendador/{{arrendadorId}}/verificar",
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}/verificar",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -264,7 +264,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/arrendador/{{arrendadorId}}",
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -307,7 +307,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/universidad",
+            "url": "{{baseUrl}}/universidades",
             "auth": {
               "type": "noauth"
             }
@@ -334,7 +334,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/universidad",
+            "url": "{{baseUrl}}/universidades",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -377,7 +377,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/universidad",
+            "url": "{{baseUrl}}/universidades",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -623,7 +623,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion",
+            "url": "{{baseUrl}}/habitaciones",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -668,7 +668,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion",
+            "url": "{{baseUrl}}/habitaciones",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -711,7 +711,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion",
+            "url": "{{baseUrl}}/habitaciones",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -754,7 +754,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion/{{habitacionId}}",
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -797,7 +797,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/habitacion/{{habitacionId}}/imagenes",
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/imagenes",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -835,7 +835,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/habitacion?page=0&size=10",
+            "url": "{{baseUrl}}/habitaciones?page=0&size=10",
             "auth": {
               "type": "noauth"
             }
@@ -857,7 +857,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/habitacion/cercanas?universidadId=1&radioKm=5",
+            "url": "{{baseUrl}}/habitaciones/cercanas?universidadId=1&radioKm=5",
             "auth": {
               "type": "noauth"
             }
@@ -879,7 +879,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/habitacion/{{habitacionId}}",
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}",
             "auth": {
               "type": "noauth"
             }
@@ -1383,7 +1383,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/arrendador/{{arrendadorId}}",
+            "url": "{{baseUrl}}/arrendadores/{{arrendadorId}}",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1422,7 +1422,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/calificaciones/habitacion/{{habitacionId}}",
+            "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/calificaciones",
             "auth": {
               "type": "noauth"
             }
@@ -1560,7 +1560,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/pagos-publicidad",
+            "url": "{{baseUrl}}/pagos-publicidad",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1603,7 +1603,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/pagos-publicidad",
+            "url": "{{baseUrl}}/pagos-publicidad",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1646,7 +1646,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{baseUrl}}/api/pagos-publicidad",
+            "url": "{{baseUrl}}/pagos-publicidad",
             "auth": {
               "type": "bearer",
               "bearer": [
