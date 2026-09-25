@@ -8,12 +8,11 @@ import com.example.desarrollo.repository.UniversidadRepository;
 import com.google.maps.model.LatLng;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,16 +32,6 @@ public class UniversidadService {
         return modelMapper.map(universidad, UniversidadResponseDTO.class);
     }
 
-    @Transactional
-    public Universidad save(Universidad uni) {
-        if (uni != null && uni.getNombre() != null && !uni.getNombre().isEmpty()) {
-            geolocalizarUniversidad(uni);
-            return universidadRepository.save(uni);
-        } else {
-            throw new IllegalArgumentException("Nombre no puede ser nulo");
-        }
-    }
-
     private void geolocalizarUniversidad(Universidad universidad) {
         // Prioriza la dirección; si no existe, busca directamente por el nombre de la universidad
         String busqueda = (universidad.getDireccion() != null && !universidad.getDireccion().isBlank())
@@ -56,14 +45,6 @@ public class UniversidadService {
         }
     }
 
-    public Universidad findById(Long id) {
-        return universidadRepository.findById(id).orElse(null);
-    }
-
-    public List<Universidad> findAll() {
-        return universidadRepository.findAll();
-    }
-
     public List<UniversidadResponseDTO> findAllDTO() {
         return universidadRepository.findAll()
                 .stream()
@@ -74,7 +55,7 @@ public class UniversidadService {
     public UniversidadResponseDTO findByIdDTO(Long id) {
         return universidadRepository.findById(id)
                 .map(uni -> modelMapper.map(uni, UniversidadResponseDTO.class))
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Universidad no encontrada con ID: " + id));
     }
 
     @Transactional
