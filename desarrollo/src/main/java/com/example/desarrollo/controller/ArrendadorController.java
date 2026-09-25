@@ -22,13 +22,7 @@ public class ArrendadorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ArrendadorResponseDTO> getArrendadorById(@PathVariable Long id) {
-        ArrendadorResponseDTO arrendadorResponseDTO = arrendadorService.findById(id);
-
-        if (arrendadorResponseDTO != null) {
-            return ResponseEntity.ok(arrendadorResponseDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(arrendadorService.findById(id));
     }
 
     @PutMapping("/{id}")

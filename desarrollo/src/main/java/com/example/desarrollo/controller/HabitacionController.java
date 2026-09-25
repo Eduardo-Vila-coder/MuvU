@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -52,20 +51,14 @@ public class HabitacionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<HabitacionDetailDTO> getHabitacionById(@PathVariable Long id) {
-        HabitacionDetailDTO habitacionDetailDTO = habitacionService.findById(id);
-
-        if (habitacionDetailDTO != null) {
-            return ResponseEntity.ok(habitacionDetailDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(habitacionService.findById(id));
     }
 
     @GetMapping
     public ResponseEntity<Page<HabitacionResponseDTO>> getAllHabitaciones(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("esDestacada").descending());
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
 

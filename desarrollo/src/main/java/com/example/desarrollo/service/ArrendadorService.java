@@ -42,13 +42,7 @@ public class ArrendadorService {
 
     // Read (GET)
     public ArrendadorResponseDTO findById(Long id) {
-        Arrendador arrendador = arrendadorRepository.findById(id).orElse(null);
-
-        if (arrendador != null) {
-            return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
-        }
-
-        return null;
+        return modelMapper.map(buscar(id), ArrendadorResponseDTO.class);
     }
 
     @Transactional

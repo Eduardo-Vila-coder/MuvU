@@ -41,12 +41,7 @@ public class UniversidadController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UniversidadResponseDTO> getUniById(@PathVariable Long id) {
-        UniversidadResponseDTO uni = universidadService.findByIdDTO(id);
-        if (uni != null) {
-            return ResponseEntity.ok(uni);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(universidadService.findByIdDTO(id));
     }
 
     @DeleteMapping("/{id}")

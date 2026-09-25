@@ -20,7 +20,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -116,20 +118,21 @@ public class HabitacionService {
 
     // Read (GET)
     public HabitacionDetailDTO findById(Long id) {
-        Habitacion habitacion = habitacionRepository.findById(id).orElse(null);
-        if (habitacion != null) {
-            HabitacionDetailDTO dto = modelMapper.map(habitacion, HabitacionDetailDTO.class);
-            dto.setImagenes(habitacion.getImagenes().stream()
-                    .map(img -> new ImagenResponseDTO(img.getId(), img.getUrl(), habitacion.getId()))
-                    .toList());
-            return dto;
-        }
-        return null;
+        Habitacion habitacion = habitacionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + id));
+        HabitacionDetailDTO dto = modelMapper.map(habitacion, HabitacionDetailDTO.class);
+        dto.setImagenes(habitacion.getImagenes().stream()
+                .map(img -> new ImagenResponseDTO(img.getId(), img.getUrl(), habitacion.getId()))
+                .toList());
+        return dto;
     }
 
     // Read all paginado (GET)
+    // Regla de negocio: las habitaciones destacadas (pagaron publicidad) salen primero
     public Page<HabitacionResponseDTO> findAll(Pageable pageable) {
-        return habitacionRepository.findAll(pageable)
+        Pageable destacadasPrimero = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("esDestacada").descending());
+        return habitacionRepository.findAll(destacadasPrimero)
                 .map(h -> modelMapper.map(h, HabitacionResponseDTO.class));
     }
 
