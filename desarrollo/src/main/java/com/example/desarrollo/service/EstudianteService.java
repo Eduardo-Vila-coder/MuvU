@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
 import com.example.desarrollo.dto.EstudianteResponseDTO;
 import com.example.desarrollo.exceptions.ConflictException;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EstudianteService {
@@ -55,6 +57,7 @@ public class EstudianteService {
 
         estudiante.setNombre(dto.getNombre());
         estudiante.setUniversidad(universidad);
+        log.info("Estudiante {} actualizó su perfil", id);
 
         return modelMapper.map(estudianteRepository.save(estudiante), EstudianteResponseDTO.class);
     }
@@ -78,5 +81,6 @@ public class EstudianteService {
             throw new ResourceNotFoundException("Estudiante no encontrado");
         }
         estudianteRepository.deleteById(id);
+        log.info("Estudiante {} eliminado", id);
     }
 }

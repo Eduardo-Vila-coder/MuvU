@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.exceptions.ForbiddenException;
 import com.example.desarrollo.model.Rol;
 import com.example.desarrollo.model.Usuario;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioService implements UserDetailsService {
@@ -34,6 +36,7 @@ public class UsuarioService implements UserDetailsService {
         Usuario yo = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (yo.getRol() == Rol.ADMIN) return; // El rol admin siempre tiene permisos
         if (!yo.getId().equals(id)) {
+            log.warn("Usuario {} intentó modificar datos del usuario {}", yo.getId(), id);
             throw new ForbiddenException("No puedes modificar datos de otro usuario");
         }
     }

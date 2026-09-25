@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.ArrendadorResponseDTO;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class ArrendadorService {
     private final ArrendadorRepository arrendadorRepository;
@@ -51,6 +53,7 @@ public class ArrendadorService {
         Arrendador arrendador = buscar(id);
         arrendador.setNombre(dto.getNombre());
         arrendador.setDniFoto(dto.getDniFoto());
+        log.info("Arrendador {} actualizó su perfil", id);
         return modelMapper.map(arrendador, ArrendadorResponseDTO.class);
     }
 
@@ -59,6 +62,7 @@ public class ArrendadorService {
     public ArrendadorResponseDTO verificar(Long id) {
         Arrendador arrendador = buscar(id);
         arrendador.setVerificado(true);
+        log.info("Arrendador {} verificado por un administrador", id);
 
         publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(arrendador.getCorreo(),
                 "MuvU: tu cuenta fue verificada",
@@ -79,6 +83,7 @@ public class ArrendadorService {
             throw new ResourceNotFoundException("Arrendador no encontrado con ID: " + id);
         }
         arrendadorRepository.deleteById(id);
+        log.info("Arrendador {} eliminado", id);
     }
 
     // Recalcula el promedio con todas las calificaciones de las habitaciones del arrendador
@@ -96,11 +101,14 @@ public class ArrendadorService {
 
         arrendador.setPuntajePromedio(Math.round(promedio * 10) / 10.0);
         arrendador.setTotalCalificaciones((long) calificaciones.size());
+        log.info("Promedio del arrendador {} actualizado a {} ({} calificaciones)",
+                arrendadorId, arrendador.getPuntajePromedio(), calificaciones.size());
     }
 
     @Transactional
     public void actualizarCantidadHabitaciones(Long arrendadorId) {
         Arrendador arrendador = buscar(arrendadorId);
         arrendador.setCantidadHabitaciones(habitacionRepository.countByArrendadorId(arrendadorId));
+        log.info("Arrendador {} ahora tiene {} habitaciones", arrendadorId, arrendador.getCantidadHabitaciones());
     }
 }

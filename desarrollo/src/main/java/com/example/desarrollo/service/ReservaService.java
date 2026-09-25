@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ReservaRequestDTO;
 import com.example.desarrollo.dto.ReservaResponseDTO;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReservaService {
@@ -71,6 +73,7 @@ public class ReservaService {
         validarFechas(habitacion.getId(), dto.getFecha_inicio(), dto.getFecha_fin());
 
         Reserva reserva = reservaRepository.save(new Reserva(dto.getFecha_inicio(), dto.getFecha_fin(), yo, habitacion));
+        log.info("Reserva {} creada por el estudiante {} para la habitación {}", reserva.getId(), miId, habitacion.getId());
 
         notificar(yo.getCorreo(), "MuvU: solicitud de reserva enviada",
                 "Hola " + yo.getNombre() + ", enviaste una solicitud para " + detalle(reserva)
@@ -96,6 +99,7 @@ public class ReservaService {
         }
 
         reserva.setEstado(Estado.CANCELADO);
+        log.info("Reserva {} cancelada", id);
         notificar(reserva.getHabitacion().getArrendador().getCorreo(), "MuvU: reserva cancelada",
                 reserva.getEstudiante().getNombre() + " canceló su solicitud para " + detalle(reserva) + ".");
         return toDTO(reservaRepository.save(reserva));
@@ -116,6 +120,7 @@ public class ReservaService {
         }
 
         reserva.setEstado(Estado.CONFIRMADO);
+        log.info("Reserva {} confirmada", id);
         notificar(reserva.getEstudiante().getCorreo(), "MuvU: tu reserva fue confirmada",
                 "Hola " + reserva.getEstudiante().getNombre() + ", el arrendador confirmó tu reserva para "
                         + detalle(reserva) + ".");
@@ -142,6 +147,7 @@ public class ReservaService {
                 .stream()
                 .anyMatch(r -> r.seCruzaCon(inicio, fin));
         if (ocupada) {
+            log.warn("Habitación {} ya reservada entre {} y {}", habitacionId, inicio, fin);
             throw new ConflictException("La habitación ya está reservada en esas fechas");
         }
     }

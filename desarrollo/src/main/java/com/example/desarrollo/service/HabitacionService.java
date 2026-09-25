@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.ActualizacionHabitacionesEvent;
 import com.example.desarrollo.dto.HabitacionDetailDTO;
 import com.example.desarrollo.dto.HabitacionRequestDTO;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HabitacionService {
@@ -68,6 +70,7 @@ public class HabitacionService {
                 .sorted(Comparator.comparing(HabitacionResponseDTO::getEsDestacada, Comparator.nullsLast(Comparator.reverseOrder()))
                         .thenComparing(HabitacionResponseDTO::getDistanciaKm))
                 .toList();
+        log.debug("Cercanas a la universidad {} en {} km: {} resultados", universidadId, radioKm, filtradas.size());
 
         // 4. Paginación manual de la lista filtrada
         int inicio = (int) pageable.getOffset();
@@ -102,6 +105,7 @@ public class HabitacionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Arrendador no encontrado"));
 
         if (!Boolean.TRUE.equals(yo.getVerificado())) {
+            log.warn("Arrendador {} intentó publicar sin estar verificado", yo.getId());
             throw new ForbiddenException("Tu cuenta aún no ha sido verificada por un administrador");
         }
 
@@ -112,6 +116,7 @@ public class HabitacionService {
         newHabitacion.setLatitud(coords.lat);
         newHabitacion.setLongitud(coords.lng);
         newHabitacion = habitacionRepository.save(newHabitacion);
+        log.info("Habitación {} publicada por el arrendador {}", newHabitacion.getId(), yo.getId());
         publisher.publishEvent(new ActualizacionHabitacionesEvent(this, yo.getId()));
         return modelMapper.map(newHabitacion, HabitacionResponseDTO.class);
     }
@@ -141,6 +146,7 @@ public class HabitacionService {
     public void deleteById(Long id) {
         Habitacion habitacion = buscarPropia(id);
         habitacionRepository.delete(habitacion);
+        log.info("Habitación {} eliminada", id);
         publisher.publishEvent(new ActualizacionHabitacionesEvent(this, habitacion.getArrendador().getId()));
     }
 
@@ -156,6 +162,7 @@ public class HabitacionService {
         habitacion.setDireccion(dto.getDireccion());
         habitacion.setPrecio(dto.getPrecio());
         habitacion.setArea(dto.getArea());
+        log.info("Habitación {} actualizada", id);
 
         return modelMapper.map(habitacion, HabitacionResponseDTO.class);
     }
@@ -165,7 +172,9 @@ public class HabitacionService {
         Habitacion habitacion = habitacionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Habitación no encontrada con ID: " + id));
 
-        if (!habitacion.getArrendador().getId().equals(usuarioService.getIdUsuarioActual())) {
+        Long miId = usuarioService.getIdUsuarioActual();
+        if (!habitacion.getArrendador().getId().equals(miId)) {
+            log.warn("Usuario {} intentó modificar la habitación {} sin ser el dueño", miId, id);
             throw new ForbiddenException("Solo el dueño puede modificar esta habitación");
         }
         return habitacion;
