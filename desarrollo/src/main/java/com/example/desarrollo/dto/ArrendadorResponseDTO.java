@@ -14,4 +14,8 @@ public class ArrendadorResponseDTO {
     private Long id;
     private String nombre;
     private String correo;
+    private Boolean verificado;
+    private Double puntajePromedio;
+    private Long totalCalificaciones;
+    private Long cantidadHabitaciones;
 }
