@@ -6,6 +6,7 @@ import com.example.desarrollo.service.ReservaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -27,6 +28,7 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('ESTUDIANTE')")
     @PostMapping
     public ResponseEntity<ReservaResponseDTO> createReserva(@Valid @RequestBody ReservaRequestDTO reservaRequestDTO) {
         ReservaResponseDTO reservaResponseDTO = reservaService.createReserva(reservaRequestDTO);
@@ -34,11 +36,13 @@ public class ReservaController {
         return ResponseEntity.created(location).body(reservaResponseDTO);
     }
 
+    @PreAuthorize("hasAuthority('ESTUDIANTE')")
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<ReservaResponseDTO> updateReserva(@PathVariable Long id) {
         return ResponseEntity.ok(reservaService.cancelReserva(id));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @PatchMapping("/{id}/confirmar")
     public ResponseEntity<ReservaResponseDTO> confirmReserva(@PathVariable Long id) {
         return ResponseEntity.ok(reservaService.confirmReserva(id));

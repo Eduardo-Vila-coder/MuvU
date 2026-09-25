@@ -6,6 +6,7 @@ import com.example.desarrollo.service.UniversidadService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -19,6 +20,7 @@ public class UniversidadController {
 
     private final UniversidadService universidadService;
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<UniversidadResponseDTO> createUniversidad(
             @Valid @RequestBody UniversidadRequestDTO uniRequestDTO) {
@@ -44,6 +46,7 @@ public class UniversidadController {
         return ResponseEntity.ok(universidadService.findByIdDTO(id));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUni(@PathVariable Long id) {
         universidadService.deleteById(id);

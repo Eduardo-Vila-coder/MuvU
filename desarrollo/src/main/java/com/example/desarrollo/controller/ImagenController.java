@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class ImagenController {
     private final ImagenService imagenService;
 
     // POST: /habitacion/1/imagenes
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @PostMapping("/habitacion/{habitacionId}/imagenes")
     public ResponseEntity<ImagenResponseDTO> agregarImagen(
             @PathVariable Long habitacionId,
@@ -33,6 +35,7 @@ public class ImagenController {
     }
 
     // DELETE: /imagenes/5
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @DeleteMapping("/imagenes/{id}")
     public ResponseEntity<Void> eliminarImagen(@PathVariable Long id) {
         imagenService.eliminarImagen(id);

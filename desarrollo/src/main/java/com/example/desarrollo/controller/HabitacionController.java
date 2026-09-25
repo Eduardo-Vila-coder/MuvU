@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -37,6 +38,7 @@ public class HabitacionController {
         return ResponseEntity.ok(habitacionService.findCercanas(universidadId, radioKm, pageable));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @PostMapping
     public ResponseEntity<HabitacionResponseDTO> createHabitacion(
             @Valid @RequestBody HabitacionRequestDTO habitacionRequestDTO) {
@@ -62,12 +64,14 @@ public class HabitacionController {
         return ResponseEntity.ok(habitacionService.findAll(pageable));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<HabitacionResponseDTO> updateHabitacion(
             @PathVariable Long id, @Valid @RequestBody HabitacionRequestDTO dto) {
         return ResponseEntity.ok(habitacionService.update(id, dto));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable Long id) {
         habitacionService.deleteById(id);

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.example.desarrollo.dto.EstudiantePerfilDTO;
 import com.example.desarrollo.dto.EstudianteUpdateRequestDTO;
@@ -28,18 +29,21 @@ public class EstudianteController {
         return ResponseEntity.ok(estudianteService.getById(id));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<EstudianteResponseDTO>> getAll(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(estudianteService.getAll(pageable));
     }
 
+    @PreAuthorize("hasAnyAuthority('ESTUDIANTE', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         estudianteService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAuthority('ESTUDIANTE')")
     @PutMapping("/{id}")
     public ResponseEntity<EstudianteResponseDTO> updateEstudiante(
             @PathVariable Long id,
@@ -47,6 +51,7 @@ public class EstudianteController {
         return ResponseEntity.ok(estudianteService.updateEstudiante(id, dto));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @GetMapping("/{id}/perfil")
     public ResponseEntity<EstudiantePerfilDTO> getPerfil(@PathVariable Long id) {
         return ResponseEntity.ok(estudianteService.getPerfil(id));
