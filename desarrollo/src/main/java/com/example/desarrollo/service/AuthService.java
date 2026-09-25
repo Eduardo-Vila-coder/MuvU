@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
+import com.example.desarrollo.dto.Logueo.ForgotPasswordRequestDTO;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
 import com.example.desarrollo.dto.Logueo.RefreshTokenRequestDTO;
+import com.example.desarrollo.dto.Logueo.ResetPasswordRequestDTO;
 import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
 import com.example.desarrollo.exceptions.DuplicateResourceException;
 import com.example.desarrollo.exceptions.InvalidTokenException;
@@ -90,6 +92,35 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findById(jwtService.extractUserId(refreshToken))
                 .orElseThrow(() -> new InvalidTokenException("El usuario del token ya no existe"));
         return generarRespuesta(usuario);
+    }
+
+    // Si el correo existe le envía un token de recuperación; si no, no hace nada (no revela qué correos están registrados)
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequestDTO dto) {
+        usuarioRepository.findByCorreo(dto.getCorreo()).ifPresent(usuario -> {
+            String token = jwtService.generateResetToken(usuario);
+            publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(usuario.getCorreo(),
+                    "MuvU: restablecer tu contraseña",
+                    "Hola " + usuario.getNombre() + ", recibimos una solicitud para restablecer tu contraseña. "
+                            + "Usa este código en POST /api/v1/auth/reset-password (vence en pocos minutos): " + token
+                            + " . Si no fuiste tú, ignora este correo.")));
+            log.info("Token de recuperación enviado al usuario {}", usuario.getId());
+        });
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequestDTO dto) {
+        if (!jwtService.isResetTokenValid(dto.getToken())) {
+            throw new InvalidTokenException("El token de recuperación es inválido o expiró");
+        }
+        Usuario usuario = usuarioRepository.findById(jwtService.extractUserId(dto.getToken()))
+                .orElseThrow(() -> new InvalidTokenException("El usuario del token ya no existe"));
+        usuario.setContrasena(passwordEncoder.encode(dto.getNuevaContrasena()));
+        log.info("Usuario {} restableció su contraseña", usuario.getId());
+        publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(usuario.getCorreo(),
+                "MuvU: tu contraseña fue cambiada",
+                "Hola " + usuario.getNombre() + ", tu contraseña se cambió correctamente. "
+                        + "Si no fuiste tú, contacta al administrador.")));
     }
 
     // Access token + refresh token nuevos (el refresh también se renueva)

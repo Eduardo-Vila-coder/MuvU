@@ -18,6 +18,7 @@ public class JwtService {
 
     private static final String TIPO_ACCESS = "access";
     private static final String TIPO_REFRESH = "refresh";
+    private static final String TIPO_RESET = "reset";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -27,6 +28,9 @@ public class JwtService {
 
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
+
+    @Value("${jwt.reset-expiration}")
+    private Long resetExpiration;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -47,6 +51,15 @@ public class JwtService {
 
     public boolean isRefreshTokenValid(String token) {
         return tieneTipo(token, TIPO_REFRESH);
+    }
+
+    // Token corto que se envía por correo para restablecer la contraseña
+    public String generateResetToken(Usuario user) {
+        return buildToken(user, TIPO_RESET, resetExpiration);
+    }
+
+    public boolean isResetTokenValid(String token) {
+        return tieneTipo(token, TIPO_RESET);
     }
 
     public String extractUsername(String token) {
