@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class CalificacionController {
 
     private final CalificacionService calificacionService;
 
+    @PreAuthorize("hasAuthority('ESTUDIANTE')")
     @PostMapping
     public ResponseEntity<CalificacionResponseDTO> createCalificacion(
             @Valid @RequestBody CalificacionRequestDTO dto) {
@@ -38,6 +40,7 @@ public class CalificacionController {
         return ResponseEntity.ok(calificacionService.findByEstudiante(estudianteId));
     }
 
+    @PreAuthorize("hasAnyAuthority('ESTUDIANTE', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCalificacion(@PathVariable Long id) {
         calificacionService.deleteById(id);

@@ -7,6 +7,7 @@ import com.example.desarrollo.service.ArrendadorService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,17 +26,20 @@ public class ArrendadorController {
         return ResponseEntity.ok(arrendadorService.findById(id));
     }
 
+    @PreAuthorize("hasAuthority('ARRENDADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<ArrendadorResponseDTO> updateArrendador(
             @PathVariable Long id, @Valid @RequestBody ArrendadorUpdateRequestDTO dto) {
         return ResponseEntity.ok(arrendadorService.update(id, dto));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/{id}/verificar")
     public ResponseEntity<ArrendadorResponseDTO> verificarArrendador(@PathVariable Long id) {
         return ResponseEntity.ok(arrendadorService.verificar(id));
     }
 
+    @PreAuthorize("hasAnyAuthority('ARRENDADOR', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArrendador(@PathVariable Long id) {
         arrendadorService.deleteById(id);

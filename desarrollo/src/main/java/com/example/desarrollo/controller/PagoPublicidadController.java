@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pagos-publicidad")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ARRENDADOR')")   // todo el controller es solo para arrendadores
 public class PagoPublicidadController {
 
     private final PagoPublicidadService pagoPublicidadService;
