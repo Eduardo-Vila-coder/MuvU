@@ -30,8 +30,7 @@ public class ImagenService {
 
         Imagen imagen = new Imagen();
         imagen.setUrl(requestDTO.getUrl());
-        imagen.setHabitacion(habitacion);
-        habitacion.getImagenes().add(imagen); // mantiene sincronizados ambos lados de la relación
+        habitacion.agregarImagen(imagen);
 
         imagen = imagenRepository.save(imagen);
         return toDTO(imagen, habitacionId);
@@ -53,11 +52,7 @@ public class ImagenService {
 
         Habitacion habitacion = imagen.getHabitacion();
         validarDueno(habitacion);
-
-        // Se quita de la lista primero: como Habitacion.imagenes tiene CascadeType.ALL,
-        // si la imagen sigue en la lista Hibernate la "revive" y no la borra.
-        habitacion.getImagenes().remove(imagen);
-        imagenRepository.delete(imagen);
+        habitacion.quitarImagen(imagen);
     }
 
     // ---------- helpers ----------

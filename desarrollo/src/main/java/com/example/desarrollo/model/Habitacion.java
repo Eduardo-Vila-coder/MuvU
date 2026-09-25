@@ -61,4 +61,15 @@ public class Habitacion {
 
     @OneToMany(mappedBy = "receptor", fetch = FetchType.LAZY)
     private List<Calificacion> calificacionesRecibidas = new ArrayList<>();
+
+    //Para agregarImagenHabitacion ->ImagenService
+
+    public void agregarImagen(Imagen imagen) {
+        imagenes.add(imagen);
+        imagen.setHabitacion(this);
+    }
+
+    public void quitarImagen(Imagen imagen) {
+        imagenes.remove(imagen);
+    }
 }

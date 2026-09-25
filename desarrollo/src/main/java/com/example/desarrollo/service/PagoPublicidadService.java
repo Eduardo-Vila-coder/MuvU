@@ -83,16 +83,14 @@ public class PagoPublicidadService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // Se ejecuta todos los días a medianoche
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void desactivarPublicidadesVencidas() {
-        List<PagoPublicidad> pagosVencidos = pagoPublicidadRepository.findAll().stream()
-                .filter(p -> p.getFechaFin() != null && LocalDate.now().isAfter(p.getFechaFin()))
-                .toList();
+        List<PagoPublicidad> pagosVencidos = pagoPublicidadRepository.findByFechaFinBefore(LocalDate.now());
 
         for (PagoPublicidad pago : pagosVencidos) {
             Habitacion habitacion = pago.getHabitacion();
-            if (habitacion != null && Boolean.TRUE.equals(habitacion.getEsDestacada())) {
+            if (Boolean.TRUE.equals(habitacion.getEsDestacada())) {
                 habitacion.setEsDestacada(false);
                 habitacionRepository.save(habitacion);
             }
