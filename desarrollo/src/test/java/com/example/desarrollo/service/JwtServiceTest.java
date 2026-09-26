@@ -44,7 +44,15 @@ class JwtServiceTest {
 
     @Test
     void tokenAlterado_noEsValido() {
-        assertFalse(jwtService.isAccessTokenValid(jwtService.generateToken(ana) + "x"));
+        Estudiante otro = new Estudiante();
+        otro.setId(4L);
+        otro.setCorreo("otro@utec.edu.pe");
+        otro.setRol(Rol.ADMIN);
+        String[] original = jwtService.generateToken(ana).split("\\.");
+        String[] ajeno = jwtService.generateToken(otro).split("\\.");
+        String alterado = original[0] + "." + ajeno[1] + "." + original[2];
+
+        assertFalse(jwtService.isAccessTokenValid(alterado));
         assertFalse(jwtService.isAccessTokenValid("no-es-un-jwt"));
     }
 
