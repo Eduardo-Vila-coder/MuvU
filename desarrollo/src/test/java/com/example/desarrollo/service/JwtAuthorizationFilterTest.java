@@ -48,7 +48,7 @@ class JwtAuthorizationFilterTest {
         Estudiante ana = new Estudiante();
         ana.setCorreo("ana@utec.edu.pe");
         ana.setRol(Rol.ESTUDIANTE);
-        when(jwtService.isTokenValid("abc")).thenReturn(true);
+        when(jwtService.isAccessTokenValid("abc")).thenReturn(true);
         when(jwtService.extractUsername("abc")).thenReturn("ana@utec.edu.pe");
         when(usuarioService.loadUserByUsername("ana@utec.edu.pe")).thenReturn(ana);
 
@@ -62,7 +62,7 @@ class JwtAuthorizationFilterTest {
 
     @Test
     void tokenInvalido_noAutentica() throws Exception {
-        when(jwtService.isTokenValid("malo")).thenReturn(false);
+        when(jwtService.isAccessTokenValid("malo")).thenReturn(false);
 
         filter.doFilter(conToken("malo"), new MockHttpServletResponse(), chain);
 
@@ -72,7 +72,7 @@ class JwtAuthorizationFilterTest {
 
     @Test
     void usuarioEliminado_noAutentica() throws Exception {
-        when(jwtService.isTokenValid("abc")).thenReturn(true);
+        when(jwtService.isAccessTokenValid("abc")).thenReturn(true);
         when(jwtService.extractUsername("abc")).thenReturn("borrado@utec.edu.pe");
         when(usuarioService.loadUserByUsername("borrado@utec.edu.pe")).thenThrow(new UsernameNotFoundException("x"));
 

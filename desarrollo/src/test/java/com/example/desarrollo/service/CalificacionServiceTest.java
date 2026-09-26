@@ -21,6 +21,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,8 +53,6 @@ class CalificacionServiceTest {
 
     @BeforeEach
     void setUp() {
-        calificacionService.setApplicationEventPublisher(publisher);
-
         estudiante = new Estudiante();
         estudiante.setId(3L);
         estudiante.setNombre("Ana");
@@ -141,31 +143,31 @@ class CalificacionServiceTest {
     @Test
     void findByHabitacion_devuelveSusCalificaciones() {
         when(habitacionRepository.existsById(1L)).thenReturn(true);
-        when(calificacionRepository.findByReceptorId(1L)).thenReturn(List.of(calificacion()));
+        when(calificacionRepository.findByReceptorId(eq(1L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(calificacion())));
 
-        assertEquals(1, calificacionService.findByHabitacion(1L).size());
+        assertEquals(1, calificacionService.findByHabitacion(1L, PageRequest.of(0, 10)).getTotalElements());
     }
 
     @Test
     void findByHabitacion_inexistente_lanzaNotFound() {
         when(habitacionRepository.existsById(1L)).thenReturn(false);
 
-        assertThrows(ResourceNotFoundException.class, () -> calificacionService.findByHabitacion(1L));
+        assertThrows(ResourceNotFoundException.class, () -> calificacionService.findByHabitacion(1L, PageRequest.of(0, 10)));
     }
 
     @Test
     void findByEstudiante_devuelveSusCalificaciones() {
         when(estudianteRepository.existsById(3L)).thenReturn(true);
-        when(calificacionRepository.findByAutorId(3L)).thenReturn(List.of(calificacion()));
+        when(calificacionRepository.findByAutorId(eq(3L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(calificacion())));
 
-        assertEquals(1, calificacionService.findByEstudiante(3L).size());
+        assertEquals(1, calificacionService.findByEstudiante(3L, PageRequest.of(0, 10)).getTotalElements());
     }
 
     @Test
     void findByEstudiante_inexistente_lanzaNotFound() {
         when(estudianteRepository.existsById(3L)).thenReturn(false);
 
-        assertThrows(ResourceNotFoundException.class, () -> calificacionService.findByEstudiante(3L));
+        assertThrows(ResourceNotFoundException.class, () -> calificacionService.findByEstudiante(3L, PageRequest.of(0, 10)));
     }
 
     @Test

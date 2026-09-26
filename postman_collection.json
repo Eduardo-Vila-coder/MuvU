@@ -863,7 +863,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/habitaciones/{{habitacionId}}/calificaciones",
-            "description": "Reseñas que dejaron los estudiantes sobre una habitación. Ayuda a otros estudiantes a decidir."
+            "description": "Reseñas que dejaron los estudiantes sobre una habitación. Ayuda a otros estudiantes a decidir.\n\nRespuesta paginada: parámetros opcionales `page` (desde 0) y `size` (1-100, por defecto 10), ordenada de la más reciente a la más antigua."
           },
           "response": [
             {
@@ -882,7 +882,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"id\": 1,\n    \"puntuacion\": 5,\n    \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n    \"autorId\": 8,\n    \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n    \"habitacionId\": 1,\n    \"reservaId\": 1\n  }\n]"
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 1,\n      \"puntuacion\": 5,\n      \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n      \"autorId\": 8,\n      \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n      \"habitacionId\": 1,\n      \"reservaId\": 1\n    }\n  ],\n  \"page\": {\n    \"size\": 10,\n    \"number\": 0,\n    \"totalElements\": 1,\n    \"totalPages\": 1\n  }\n}"
             }
           ],
           "event": [
@@ -1701,7 +1701,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/reservas",
-            "description": "El arrendador ve las reservas de sus habitaciones. El script guarda la primera PENDIENTE para confirmarla."
+            "description": "El arrendador ve las reservas de sus habitaciones. El script guarda la primera PENDIENTE para confirmarla.\n\nRespuesta paginada: parámetros opcionales `page` (desde 0) y `size` (1-100, por defecto 10), ordenada de la más reciente a la más antigua."
           },
           "response": [
             {
@@ -1720,7 +1720,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"id\": 11,\n    \"estado\": \"PENDIENTE\",\n    \"fecha_fin\": \"2027-01-23\",\n    \"fecha_inicio\": \"2026-10-25\",\n    \"habitacionId\": 2,\n    \"estudianteId\": 8\n  }\n]"
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 11,\n      \"estado\": \"PENDIENTE\",\n      \"fecha_fin\": \"2027-01-23\",\n      \"fecha_inicio\": \"2026-10-25\",\n      \"habitacionId\": 2,\n      \"estudianteId\": 8\n    }\n  ],\n  \"page\": {\n    \"size\": 10,\n    \"number\": 0,\n    \"totalElements\": 1,\n    \"totalPages\": 1\n  }\n}"
             }
           ],
           "event": [
@@ -1730,7 +1730,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
-                  "const pendiente = pm.response.json().find(r => r.estado === \"PENDIENTE\");",
+                  "const pendiente = pm.response.json().content.find(r => r.estado === \"PENDIENTE\");",
                   "pm.collectionVariables.set(\"reservaPendienteId\", pendiente ? pendiente.id : \"\");"
                 ]
               }
@@ -2006,7 +2006,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/reservas",
-            "description": "El estudiante ve sus propias reservas y su estado."
+            "description": "El estudiante ve sus propias reservas y su estado.\n\nRespuesta paginada: parámetros opcionales `page` (desde 0) y `size` (1-100, por defecto 10), ordenada de la más reciente a la más antigua."
           },
           "response": [
             {
@@ -2025,7 +2025,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"id\": 9,\n    \"estado\": \"CONFIRMADO\",\n    \"fecha_fin\": \"2027-01-23\",\n    \"fecha_inicio\": \"2026-10-25\",\n    \"habitacionId\": 2,\n    \"estudianteId\": 8\n  }\n]"
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 9,\n      \"estado\": \"CONFIRMADO\",\n      \"fecha_fin\": \"2027-01-23\",\n      \"fecha_inicio\": \"2026-10-25\",\n      \"habitacionId\": 2,\n      \"estudianteId\": 8\n    }\n  ],\n  \"page\": {\n    \"size\": 10,\n    \"number\": 0,\n    \"totalElements\": 1,\n    \"totalPages\": 1\n  }\n}"
             }
           ],
           "event": [
@@ -2365,7 +2365,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/calificaciones",
-            "description": "Calificaciones que escribió el estudiante."
+            "description": "Calificaciones que escribió el estudiante.\n\nRespuesta paginada: parámetros opcionales `page` (desde 0) y `size` (1-100, por defecto 10), ordenada de la más reciente a la más antigua."
           },
           "response": [
             {
@@ -2384,7 +2384,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"id\": 1,\n    \"puntuacion\": 5,\n    \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n    \"autorId\": 8,\n    \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n    \"habitacionId\": 1,\n    \"reservaId\": 1\n  }\n]"
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 1,\n      \"puntuacion\": 5,\n      \"descripcion\": \"Muy buena ubicación, cerca de la universidad.\",\n      \"autorId\": 8,\n      \"autorNombre\": \"Ana Lucía Ramos Pérez\",\n      \"habitacionId\": 1,\n      \"reservaId\": 1\n    }\n  ],\n  \"page\": {\n    \"size\": 10,\n    \"number\": 0,\n    \"totalElements\": 1,\n    \"totalPages\": 1\n  }\n}"
             }
           ],
           "event": [
@@ -2573,7 +2573,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/reservas",
-            "description": "Una ruta protegida sin el header `Authorization` responde 401.",
+            "description": "Una ruta protegida sin el header `Authorization` responde 401.\n\nRespuesta paginada: parámetros opcionales `page` (desde 0) y `size` (1-100, por defecto 10), ordenada de la más reciente a la más antigua.",
             "auth": {
               "type": "noauth"
             }

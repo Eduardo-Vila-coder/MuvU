@@ -3,9 +3,13 @@ package com.example.desarrollo.service;
 import com.example.desarrollo.Events.NotificacionCorreoEvent;
 import com.example.desarrollo.dto.ArrendadorRequestDTO;
 import com.example.desarrollo.dto.EstudianteRequestDTO;
+import com.example.desarrollo.dto.Logueo.ForgotPasswordRequestDTO;
 import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
+import com.example.desarrollo.dto.Logueo.RefreshTokenRequestDTO;
+import com.example.desarrollo.dto.Logueo.ResetPasswordRequestDTO;
 import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
 import com.example.desarrollo.exceptions.DuplicateResourceException;
+import com.example.desarrollo.exceptions.InvalidTokenException;
 import com.example.desarrollo.exceptions.ResourceNotFoundException;
 import com.example.desarrollo.model.*;
 import com.example.desarrollo.repository.ArrendadorRepository;
@@ -120,6 +124,106 @@ class AuthServiceTest {
 
         assertThrows(BadCredentialsException.class, () -> authService.login(login("ana@utec.edu.pe", "otra")));
         verify(jwtService, never()).generateToken(any());
+    }
+
+    @Test
+    void refresh_conTokenValido_devuelveTokensNuevos() {
+        Usuario ana = estudiante();
+        when(jwtService.isRefreshTokenValid("refresh")).thenReturn(true);
+        when(jwtService.extractUserId("refresh")).thenReturn(3L);
+        when(usuarioRepository.findById(3L)).thenReturn(Optional.of(ana));
+        when(jwtService.generateToken(ana)).thenReturn("jwt-nuevo");
+        when(jwtService.generateRefreshToken(ana)).thenReturn("refresh-nuevo");
+
+        TokenResponseDTO respuesta = authService.refresh(refresh("refresh"));
+
+        assertEquals("jwt-nuevo", respuesta.token());
+        assertEquals("refresh-nuevo", respuesta.refreshToken());
+    }
+
+    @Test
+    void refresh_conTokenInvalido_lanzaInvalidToken() {
+        when(jwtService.isRefreshTokenValid("malo")).thenReturn(false);
+
+        assertThrows(InvalidTokenException.class, () -> authService.refresh(refresh("malo")));
+    }
+
+    @Test
+    void refresh_deUsuarioEliminado_lanzaInvalidToken() {
+        when(jwtService.isRefreshTokenValid("refresh")).thenReturn(true);
+        when(jwtService.extractUserId("refresh")).thenReturn(9L);
+        when(usuarioRepository.findById(9L)).thenReturn(Optional.empty());
+
+        assertThrows(InvalidTokenException.class, () -> authService.refresh(refresh("refresh")));
+    }
+
+    @Test
+    void forgotPassword_correoRegistrado_enviaCorreoConToken() {
+        Usuario ana = estudiante();
+        when(usuarioRepository.findByCorreo("ana@utec.edu.pe")).thenReturn(Optional.of(ana));
+        when(jwtService.generateResetToken(ana)).thenReturn("reset");
+
+        authService.forgotPassword(forgot("ana@utec.edu.pe"));
+
+        verify(publisher).publishEvent(any(NotificacionCorreoEvent.class));
+    }
+
+    @Test
+    void forgotPassword_correoNoRegistrado_noHaceNada() {
+        when(usuarioRepository.findByCorreo("nadie@utec.edu.pe")).thenReturn(Optional.empty());
+
+        authService.forgotPassword(forgot("nadie@utec.edu.pe"));
+
+        verify(publisher, never()).publishEvent(any(NotificacionCorreoEvent.class));
+    }
+
+    @Test
+    void resetPassword_conTokenValido_cambiaLaContrasena() {
+        Usuario ana = estudiante();
+        when(jwtService.isResetTokenValid("reset")).thenReturn(true);
+        when(jwtService.extractUserId("reset")).thenReturn(3L);
+        when(usuarioRepository.findById(3L)).thenReturn(Optional.of(ana));
+        when(passwordEncoder.encode("Nueva123!")).thenReturn("hash-nuevo");
+
+        authService.resetPassword(reset("reset", "Nueva123!"));
+
+        assertEquals("hash-nuevo", ana.getContrasena());
+    }
+
+    @Test
+    void resetPassword_conTokenInvalido_lanzaInvalidToken() {
+        when(jwtService.isResetTokenValid("malo")).thenReturn(false);
+
+        assertThrows(InvalidTokenException.class, () -> authService.resetPassword(reset("malo", "Nueva123!")));
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    private Usuario estudiante() {
+        Usuario ana = new Estudiante();
+        ana.setId(3L);
+        ana.setCorreo("ana@utec.edu.pe");
+        ana.setNombre("Ana");
+        ana.setRol(Rol.ESTUDIANTE);
+        return ana;
+    }
+
+    private RefreshTokenRequestDTO refresh(String token) {
+        RefreshTokenRequestDTO dto = new RefreshTokenRequestDTO();
+        dto.setRefreshToken(token);
+        return dto;
+    }
+
+    private ForgotPasswordRequestDTO forgot(String correo) {
+        ForgotPasswordRequestDTO dto = new ForgotPasswordRequestDTO();
+        dto.setCorreo(correo);
+        return dto;
+    }
+
+    private ResetPasswordRequestDTO reset(String token, String nuevaContrasena) {
+        ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO();
+        dto.setToken(token);
+        dto.setNuevaContrasena(nuevaContrasena);
+        return dto;
     }
 
     private LoginRequestDTO login(String correo, String contrasena) {

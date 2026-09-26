@@ -1,8 +1,7 @@
 package com.example.desarrollo.controller;
 
 import com.example.desarrollo.dto.*;
-import com.example.desarrollo.dto.Logueo.LoginRequestDTO;
-import com.example.desarrollo.dto.Logueo.TokenResponseDTO;
+import com.example.desarrollo.dto.Logueo.*;
 import com.example.desarrollo.service.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -32,24 +32,30 @@ class ControllersTest {
     @Mock private ReservaService reservaService;
     @Mock private UniversidadService universidadService;
 
+    private final PageRequest primeraPagina = PageRequest.of(0, 10, Sort.by("id").descending());
+
     @AfterEach
     void limpiar() {
         RequestContextHolder.resetRequestAttributes();
     }
 
     @Test
-    void auth_registroResponde201YLogin200() {
+    void auth_registroResponde201_loginYRefresh200_recuperacion204() {
         AuthController controller = new AuthController(authService);
-        TokenResponseDTO token = new TokenResponseDTO("jwt", "ESTUDIANTE", 1L);
+        TokenResponseDTO token = new TokenResponseDTO("jwt", "refresh", "ESTUDIANTE", 1L);
         when(authService.registerEstudiante(any())).thenReturn(token);
         when(authService.registerArrendador(any())).thenReturn(token);
         when(authService.login(any())).thenReturn(token);
+        when(authService.refresh(any())).thenReturn(token);
 
         assertEquals(201, controller.registerEstudiante(new EstudianteRequestDTO()).getStatusCode().value());
         assertEquals(201, controller.registerArrendador(new ArrendadorRequestDTO()).getStatusCode().value());
         ResponseEntity<TokenResponseDTO> login = controller.login(new LoginRequestDTO());
         assertEquals(200, login.getStatusCode().value());
         assertSame(token, login.getBody());
+        assertEquals(200, controller.refresh(new RefreshTokenRequestDTO()).getStatusCode().value());
+        assertEquals(204, controller.forgotPassword(new ForgotPasswordRequestDTO()).getStatusCode().value());
+        assertEquals(204, controller.resetPassword(new ResetPasswordRequestDTO()).getStatusCode().value());
     }
 
     @Test
@@ -59,20 +65,28 @@ class ControllersTest {
         assertEquals(200, controller.getArrendadorById(2L).getStatusCode().value());
         assertEquals(200, controller.updateArrendador(2L, new ArrendadorUpdateRequestDTO()).getStatusCode().value());
         assertEquals(200, controller.verificarArrendador(2L).getStatusCode().value());
-        assertTrue(controller.deleteArrendador(2L).getStatusCode().is2xxSuccessful());
+        assertEquals(204, controller.deleteArrendador(2L).getStatusCode().value());
         verify(arrendadorService).verificar(2L);
         verify(arrendadorService).deleteById(2L);
     }
 
     @Test
-    void calificacion_creaCon201YEliminaCon204() {
+    void calificacion_creaCon201_listaPaginadoYEliminaCon204() {
+        simularPeticion("/api/v1/calificaciones");
         CalificacionController controller = new CalificacionController(calificacionService);
+        CalificacionResponseDTO creada = new CalificacionResponseDTO();
+        creada.setId(5L);
+        when(calificacionService.create(any())).thenReturn(creada);
 
-        assertEquals(201, controller.createCalificacion(new CalificacionRequestDTO()).getStatusCode().value());
+        ResponseEntity<CalificacionResponseDTO> respuesta = controller.createCalificacion(new CalificacionRequestDTO());
+
+        assertEquals(201, respuesta.getStatusCode().value());
+        assertTrue(respuesta.getHeaders().getLocation().toString().endsWith("/api/v1/calificaciones/5"));
         assertEquals(200, controller.getById(5L).getStatusCode().value());
-        assertEquals(200, controller.getByHabitacion(1L).getStatusCode().value());
-        assertEquals(200, controller.getByEstudiante(3L).getStatusCode().value());
+        assertEquals(200, controller.getByHabitacion(1L, 0, 10).getStatusCode().value());
+        assertEquals(200, controller.getByEstudiante(3L, 0, 10).getStatusCode().value());
         assertEquals(204, controller.deleteCalificacion(5L).getStatusCode().value());
+        verify(calificacionService).findByHabitacion(1L, primeraPagina);
         verify(calificacionService).deleteById(5L);
     }
 
@@ -90,7 +104,7 @@ class ControllersTest {
 
     @Test
     void habitacion_creaCon201YLocation() {
-        simularPeticion("/habitacion");
+        simularPeticion("/api/v1/habitaciones");
         HabitacionController controller = new HabitacionController(habitacionService);
         HabitacionResponseDTO creada = new HabitacionResponseDTO();
         creada.setId(1L);
@@ -99,13 +113,13 @@ class ControllersTest {
         ResponseEntity<HabitacionResponseDTO> respuesta = controller.createHabitacion(new HabitacionRequestDTO());
 
         assertEquals(201, respuesta.getStatusCode().value());
-        assertTrue(respuesta.getHeaders().getLocation().toString().endsWith("/habitacion/1"));
+        assertTrue(respuesta.getHeaders().getLocation().toString().endsWith("/api/v1/habitaciones/1"));
         assertEquals(200, controller.getHabitacionesCercanas(1L, 3.0, 0, 10).getStatusCode().value());
         assertEquals(200, controller.getHabitacionById(1L).getStatusCode().value());
         assertEquals(200, controller.getAllHabitaciones(0, 10).getStatusCode().value());
         assertEquals(200, controller.updateHabitacion(1L, new HabitacionRequestDTO()).getStatusCode().value());
         assertEquals(204, controller.deleteHabitacion(1L).getStatusCode().value());
-        verify(habitacionService).findCercanas(1L, 3.0, PageRequest.of(0, 10));
+        verify(habitacionService).deleteById(1L);
     }
 
     @Test
@@ -127,7 +141,8 @@ class ControllersTest {
     }
 
     @Test
-    void reserva_creaCon201YLocation() {
+    void reserva_creaCon201_listaPaginadoYCambiaEstado() {
+        simularPeticion("/api/v1/reservas");
         ReservaController controller = new ReservaController(reservaService);
         ReservaResponseDTO creada = new ReservaResponseDTO();
         creada.setId(5L);
@@ -136,18 +151,19 @@ class ControllersTest {
         ResponseEntity<ReservaResponseDTO> respuesta = controller.createReserva(new ReservaRequestDTO());
 
         assertEquals(201, respuesta.getStatusCode().value());
-        assertEquals("/reservas/5", respuesta.getHeaders().getLocation().toString());
-        assertEquals(200, controller.getMisReservas().getStatusCode().value());
+        assertTrue(respuesta.getHeaders().getLocation().toString().endsWith("/api/v1/reservas/5"));
+        assertEquals(200, controller.getMisReservas(0, 10).getStatusCode().value());
         assertEquals(200, controller.getReservaById(5L).getStatusCode().value());
-        assertEquals(200, controller.updateReserva(5L).getStatusCode().value());
+        assertEquals(200, controller.cancelReserva(5L).getStatusCode().value());
         assertEquals(200, controller.confirmReserva(5L).getStatusCode().value());
+        verify(reservaService).findMisReservas(primeraPagina);
         verify(reservaService).cancelReserva(5L);
         verify(reservaService).confirmReserva(5L);
     }
 
     @Test
     void universidad_creaCon201YEliminaCon204() {
-        simularPeticion("/universidad");
+        simularPeticion("/api/v1/universidades");
         UniversidadController controller = new UniversidadController(universidadService);
         UniversidadResponseDTO creada = new UniversidadResponseDTO();
         creada.setId(1L);

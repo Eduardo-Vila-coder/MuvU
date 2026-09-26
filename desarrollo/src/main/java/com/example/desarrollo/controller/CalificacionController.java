@@ -4,14 +4,18 @@ import com.example.desarrollo.dto.CalificacionRequestDTO;
 import com.example.desarrollo.dto.CalificacionResponseDTO;
 import com.example.desarrollo.service.CalificacionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 // Las calificaciones de una habitación o de un estudiante se exponen como sub-recurso de cada uno
 @RestController
@@ -39,13 +43,19 @@ public class CalificacionController {
     }
 
     @GetMapping("/habitaciones/{habitacionId}/calificaciones")
-    public ResponseEntity<List<CalificacionResponseDTO>> getByHabitacion(@PathVariable Long habitacionId) {
-        return ResponseEntity.ok(calificacionService.findByHabitacion(habitacionId));
+    public ResponseEntity<Page<CalificacionResponseDTO>> getByHabitacion(
+            @PathVariable Long habitacionId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+        return ResponseEntity.ok(calificacionService.findByHabitacion(habitacionId, PageRequest.of(page, size, Sort.by("id").descending())));
     }
 
     @GetMapping("/estudiantes/{estudianteId}/calificaciones")
-    public ResponseEntity<List<CalificacionResponseDTO>> getByEstudiante(@PathVariable Long estudianteId) {
-        return ResponseEntity.ok(calificacionService.findByEstudiante(estudianteId));
+    public ResponseEntity<Page<CalificacionResponseDTO>> getByEstudiante(
+            @PathVariable Long estudianteId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+        return ResponseEntity.ok(calificacionService.findByEstudiante(estudianteId, PageRequest.of(page, size, Sort.by("id").descending())));
     }
 
     @PreAuthorize("hasAnyAuthority('ESTUDIANTE', 'ADMIN')")

@@ -10,11 +10,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,5 +48,16 @@ class EmailServiceImplTest {
         assertEquals("MuvU: prueba", captor.getAllValues().get(0).getSubject());
         assertEquals("ana@utec.edu.pe", captor.getAllValues().get(0).getAllRecipients()[0].toString());
         assertEquals("rosa@muvu.com", captor.getAllValues().get(1).getAllRecipients()[0].toString());
+    }
+
+    @Test
+    void siUnEnvioFalla_noLanzaYSigueConLosDemas() {
+        when(templateEngine.process(eq("ThymeLeafMail"), any(Context.class))).thenReturn("<p>Hola</p>");
+        when(mailSender.createMimeMessage()).thenAnswer(inv -> new MimeMessage((Session) null));
+        doThrow(new MailSendException("SMTP caído")).doNothing().when(mailSender).send(any(MimeMessage.class));
+
+        assertDoesNotThrow(() -> emailService.sendEmailWithThymeLeaf(
+                new Mail(new String[]{"ana@utec.edu.pe", "rosa@muvu.com"}, "MuvU: prueba", "Hola")));
+        verify(mailSender, times(2)).send(any(MimeMessage.class));
     }
 }

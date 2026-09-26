@@ -19,6 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -172,10 +175,10 @@ class ReservaServiceTest {
         estudiante.setRol(Rol.ESTUDIANTE);
         when(usuarioService.getIdUsuarioActual()).thenReturn(3L);
         when(usuarioRepository.findById(3L)).thenReturn(Optional.<Usuario>of(estudiante));
-        when(reservaRepository.findByEstudianteId(3L)).thenReturn(List.of(reservaPendiente()));
+        when(reservaRepository.findByEstudianteId(eq(3L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(reservaPendiente())));
 
-        assertEquals(1, reservaService.findMisReservas().size());
-        verify(reservaRepository, never()).findAll();
+        assertEquals(1, reservaService.findMisReservas(PageRequest.of(0, 10)).getTotalElements());
+        verify(reservaRepository, never()).findAll(any(Pageable.class));
     }
 
     @Test
@@ -184,9 +187,9 @@ class ReservaServiceTest {
         arrendador.setRol(Rol.ARRENDADOR);
         when(usuarioService.getIdUsuarioActual()).thenReturn(2L);
         when(usuarioRepository.findById(2L)).thenReturn(Optional.<Usuario>of(arrendador));
-        when(reservaRepository.findByHabitacionArrendadorId(2L)).thenReturn(List.of(reservaPendiente()));
+        when(reservaRepository.findByHabitacionArrendadorId(eq(2L), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(reservaPendiente())));
 
-        assertEquals(1, reservaService.findMisReservas().size());
+        assertEquals(1, reservaService.findMisReservas(PageRequest.of(0, 10)).getTotalElements());
     }
 
     private void prepararCreacion() {

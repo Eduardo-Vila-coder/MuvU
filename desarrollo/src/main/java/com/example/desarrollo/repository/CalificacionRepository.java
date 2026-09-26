@@ -1,6 +1,8 @@
 package com.example.desarrollo.repository;
 
 import com.example.desarrollo.model.Calificacion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,9 +25,9 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Long
     boolean existsByReservaIdAndAutorId(Long reservaId, Long autorId);
 
     @EntityGraph(attributePaths = "autor")
-    List<Calificacion> findByReceptorId(Long receptorId);
+    Page<Calificacion> findByReceptorId(Long receptorId, Pageable pageable);
 
-    List<Calificacion> findByAutorId(Long autorId);
+    Page<Calificacion> findByAutorId(Long autorId, Pageable pageable);
 
     List<Calificacion> findByReceptorArrendadorId(Long arrendadorId);
 }
