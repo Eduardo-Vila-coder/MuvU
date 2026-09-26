@@ -33,13 +33,13 @@
 ## 1. Introducción
 
 ### Contexto
-Cada ciclo, miles de estudiantes se mudan a Lima o buscan vivir más cerca de su universidad. La búsqueda se hace por grupos de Facebook, carteles o recomendaciones: la información está dispersa, no se sabe qué tan lejos queda el campus y no hay forma de saber si el arrendador es confiable.
+Cada ciclo, miles de estudiantes buscan vivir cerca de su universidad. Lo hacen por grupos de Facebook, carteles o recomendaciones: la información está dispersa, no se sabe qué tan lejos queda el campus ni si el arrendador es confiable.
 
 ### Objetivos del proyecto
-- Permitir que un estudiante encuentre habitaciones **cerca de su universidad**, filtradas por distancia.
-- Dar confianza con **arrendadores verificados** por un administrador y **calificaciones** de estudiantes que ya se alojaron.
-- Ordenar el proceso de **reserva** (solicitud, confirmación y cancelación) con notificaciones por correo.
-- Ofrecer a los arrendadores un canal para **destacar** sus habitaciones mediante un pago.
+- Encontrar habitaciones **cerca de la universidad**, filtradas por distancia.
+- Dar confianza con **arrendadores verificados** y **calificaciones** de otros estudiantes.
+- Ordenar la **reserva** (solicitud, confirmación, cancelación) con avisos por correo.
+- Permitir a los arrendadores **destacar** sus habitaciones mediante un pago.
 
 ## 2. Identificación del problema o necesidad
 
@@ -47,7 +47,7 @@ Cada ciclo, miles de estudiantes se mudan a Lima o buscan vivir más cerca de su
 El estudiante no puede comparar habitaciones por cercanía a su universidad, no sabe si el anuncio es real y coordina la reserva por mensajes, sin registro. El arrendador, a su vez, no tiene un canal enfocado en estudiantes.
 
 ### Justificación
-La vivienda influye en el rendimiento y el gasto de los estudiantes. Una plataforma especializada reduce el tiempo de búsqueda, disminuye el riesgo de estafas con verificación y reseñas, y da a los arrendadores una demanda constante.
+La vivienda influye en el rendimiento y el gasto del estudiante. Una plataforma especializada reduce el tiempo de búsqueda y el riesgo de estafas, y da a los arrendadores una demanda constante.
 
 ## 3. Descripción de la solución
 
@@ -61,17 +61,17 @@ La vivienda influye en el rendimiento y el gasto de los estudiantes. Una platafo
 | Administrador | Verificar arrendadores, gestionar universidades y eliminar cuentas o calificaciones |
 | Todos | Login con JWT, **refresh token** y **recuperación de contraseña** por correo |
 
-La búsqueda por radio resuelve la cercanía, la verificación y las calificaciones generan confianza, y la reserva con estados y correos reemplaza la coordinación informal.
+La búsqueda por radio resuelve la cercanía; la verificación y las calificaciones dan confianza; las reservas con correos reemplazan la coordinación informal.
 
 ### Tecnologías utilizadas
 
 | Área | Tecnología |
 |---|---|
-| Lenguaje y framework | Java 21, Spring Boot 4.1 (Web MVC, Data JPA, Security, Validation, Mail, Thymeleaf) |
-| Base de datos | PostgreSQL 16 en Docker, Hibernate 7 |
+| Backend | Java 21, Spring Boot 4.1 (Web, Data JPA, Security, Validation, Mail, Thymeleaf) |
+| Base de datos | PostgreSQL 16 (Docker en local, RDS en producción) |
 | Seguridad | Spring Security, JWT (JJWT 0.12), BCrypt |
 | Mapeo | ModelMapper 3.2 y Lombok |
-| APIs externas | Google Maps Geocoding (coordenadas), Stripe (pagos en modo prueba), Gmail SMTP (correos) |
+| APIs externas | Google Maps Geocoding, Stripe (modo prueba), Gmail SMTP |
 | Calidad | JUnit 5 + Mockito, JaCoCo, SLF4J + Logback |
 | Herramientas | Maven, Postman, GitHub |
 
@@ -147,14 +147,14 @@ erDiagram
 ```
 
 ### Descripción de entidades
-- **Usuario** (abstracta, herencia `JOINED`): datos comunes y el **rol** (`ESTUDIANTE`, `ARRENDADOR`, `ADMIN`). El correo es único. Sus subclases son **Admin**, **Arrendador** (foto del DNI y estadísticas que recalculan los eventos) y **Estudiante** (pertenece a una universidad).
-- **Universidad**: nombre único y coordenadas, que son la referencia para la búsqueda por cercanía.
-- **Habitacion**: dirección geocodificada, precio, área y si está destacada. Pertenece a un arrendador; sus **imágenes** se eliminan con ella (`cascade` + `orphanRemoval`).
+- **Usuario** (abstracta, herencia `JOINED`): datos comunes, correo único y **rol**. Subclases: **Admin**, **Arrendador** (DNI y estadísticas que recalculan los eventos) y **Estudiante** (pertenece a una universidad).
+- **Universidad**: coordenadas de referencia para la búsqueda por cercanía.
+- **Habitacion**: dirección geocodificada, precio, área y si está destacada; sus **imágenes** se eliminan con ella (`cascade` + `orphanRemoval`).
 - **Reserva**: une estudiante y habitación con fechas y estado (`PENDIENTE`, `CONFIRMADO`, `CANCELADO`).
-- **Calificacion**: puntuación de 1 a 5, con relación `@OneToOne` a su reserva (una reseña por reserva).
-- **PagoPublicidad**: pago que destaca una habitación entre dos fechas.
+- **Calificacion**: puntuación de 1 a 5, `@OneToOne` con su reserva.
+- **PagoPublicidad**: destaca una habitación entre dos fechas.
 
-Todas las relaciones son `LAZY`, con `@EntityGraph` donde se necesitan para evitar consultas N+1. Hay índices en las llaves foráneas y validaciones (`@NotBlank`, `@Email`, `@Size`, `@Min`/`@Max`) en entidades y DTOs.
+Relaciones `LAZY` con `@EntityGraph` donde hace falta, índices en las llaves foráneas y validaciones en entidades y DTOs.
 
 ## 5. Arquitectura y decisiones de diseño
 
@@ -173,17 +173,16 @@ flowchart LR
 ```
 
 **Decisiones de diseño**
-- **Capas** Controller → Service → Repository. Los controllers solo reciben, validan (`@Valid`) y responden; la lógica y los permisos están en los services.
-- **DTOs** de request y response separados (26 DTOs) con ModelMapper. Nunca se expone una entidad ni la contraseña.
-- **JWT sin estado:** un access token de 1 hora y un refresh token de 7 días. El token incluye `userId`, correo y roles.
-- **Roles con `@PreAuthorize`** en cada endpoint; en `SecurityConfig` solo quedan las rutas públicas.
-- **API versionada** (`/api/v1`) con recursos en plural, y sub-recursos para imágenes y calificaciones.
-- **Eventos después del commit:** el correo o las estadísticas no se procesan si la operación falla.
-- **HATEOAS:** se consideró, pero no se implementó. Las respuestas `201` incluyen el header `Location`, y agregar enlaces en todas las respuestas complicaba los DTOs sin un cliente que los usara.
+- **Capas** Controller → Service → Repository: los controllers validan (`@Valid`) y responden; la lógica y los permisos viven en los services.
+- **26 DTOs** de request y response con ModelMapper; nunca se expone una entidad ni la contraseña.
+- **JWT sin estado:** access token de 1 hora y refresh token de 7 días, con `userId`, correo y roles.
+- **Roles con `@PreAuthorize`** en cada endpoint; `SecurityConfig` solo define las rutas públicas.
+- **API versionada** (`/api/v1`), recursos en plural y sub-recursos para imágenes y calificaciones.
+- **HATEOAS:** se consideró, pero las respuestas `201` ya incluyen `Location` y no hay un cliente que use enlaces.
 
 ## 6. Manejo de errores
 
-Un `@RestControllerAdvice` (`GlobalExceptionHandler`) centraliza todos los errores y responde siempre con el mismo `ErrorResponseDTO`:
+Un `@RestControllerAdvice` (`GlobalExceptionHandler`) centraliza los errores y responde siempre con el mismo `ErrorResponseDTO`:
 
 ```json
 { "timestamp": "2026-09-25T10:00:00", "status": 404, "error": "Not Found",
@@ -194,120 +193,116 @@ Las excepciones propias heredan de `MuvuException`, que define su código HTTP:
 
 | Excepción | Código |
 |---|---|
-| `InvalidOperationException` y errores de validación, JSON mal formado o parámetros | 400 |
+| `InvalidOperationException`, validaciones y JSON mal formado | 400 |
 | `InvalidTokenException`, credenciales o token inválido | 401 |
 | `ForbiddenException` y `@PreAuthorize` | 403 |
 | `ResourceNotFoundException` | 404 |
 | `ConflictException`, `DuplicateResourceException`, `ReservaInvalidStateException` | 409 |
 | `ExternalServiceException`, `PaymentException` (Google Maps, Stripe) | 502 |
-| Cualquier otro error | 500 (el detalle solo se registra en el log) |
+| Cualquier otro error | 500 (detalle solo en el log) |
 
-Manejarlos globalmente da respuestas consistentes, no filtra detalles internos y le dice al cliente qué corregir.
+Así las respuestas son consistentes y no filtran detalles internos.
 
 ## 7. Medidas de seguridad implementadas
 
 ### Seguridad de datos
-- Contraseñas cifradas con **BCrypt** y validadas como contraseñas fuertes (mayúscula, minúscula, número y símbolo).
-- **JWT** firmado con HMAC-SHA y validado en cada request, incluido su vencimiento. Un refresh token no sirve para llamar a la API.
-- **Roles** con `@PreAuthorize` y verificación de **propiedad** en los services: solo el dueño edita su habitación, confirma sus reservas o paga su publicidad.
-- Secretos (JWT, Stripe, Google Maps, Gmail) en **variables de entorno**; el `.env` está en `.gitignore`.
+- Contraseñas cifradas con **BCrypt** y con reglas de fuerza (mayúscula, minúscula, número y símbolo).
+- **JWT** firmado con HMAC-SHA, validado en cada request junto con su vencimiento; un refresh token no sirve para llamar a la API.
+- **Roles** con `@PreAuthorize` y verificación de **propiedad**: solo el dueño edita su habitación, confirma sus reservas o paga su publicidad.
+- Secretos en **variables de entorno**; el `.env` está en `.gitignore`.
 
 ### Prevención de vulnerabilidades
 - **Inyección SQL:** todo el acceso a datos es con Spring Data JPA y consultas parametrizadas.
 - **XSS:** la API solo responde JSON, y la plantilla de correo usa `th:text`, que escapa el contenido.
-- **CSRF:** está desactivado a propósito, porque la API es *stateless* y usa tokens en el header en lugar de cookies.
+- **CSRF:** desactivado a propósito: la API es *stateless* y usa tokens en el header, no cookies.
 - **CORS:** solo se aceptan los orígenes configurados en `CORS_ALLOWED_ORIGINS`.
-- **Enumeración de usuarios:** "olvidé mi contraseña" responde igual exista o no el correo.
-- **Datos sensibles:** los DTOs nunca devuelven la contraseña, y la lista de estudiantes solo la ve el administrador.
+- **Enumeración de usuarios:** la recuperación de contraseña responde igual exista o no el correo.
+- **Datos sensibles:** la lista de estudiantes solo la ve el administrador.
 
 ## 8. Eventos y asincronía
 
 | Evento | Se publica al | Qué hace |
 |---|---|---|
-| `NotificacionCorreoEvent` | Registrarse, verificar un arrendador, crear/confirmar/cancelar una reserva, pagar publicidad, recuperar la contraseña | Envía un correo HTML con la plantilla Thymeleaf |
-| `ActualizacionPromedioEvent` | Crear o eliminar una calificación | Recalcula el puntaje promedio del arrendador |
-| `ActualizacionHabitacionesEvent` | Crear o eliminar una habitación | Recalcula la cantidad de habitaciones del arrendador |
+| `NotificacionCorreoEvent` | Registro, verificación, reservas, pago de publicidad, recuperación de contraseña | Envía un correo HTML con plantilla Thymeleaf |
+| `ActualizacionPromedioEvent` | Crear o eliminar una calificación | Recalcula el promedio del arrendador |
+| `ActualizacionHabitacionesEvent` | Crear o eliminar una habitación | Recalcula sus habitaciones publicadas |
 
-Los listeners usan `@TransactionalEventListener(AFTER_COMMIT)` y `@Async`: se ejecutan solo si la operación se guardó, en un pool propio (`ThreadPoolTaskExecutor`, hilos `muvu-async-*`). **Deben ser asíncronos** porque enviar un correo puede tardar segundos y el usuario no debe esperarlo. Si un correo falla, se registra en el log sin afectar la operación. Los eventos también desacoplan los services: `ReservaService` no sabe cómo se envían los correos.
+Los listeners usan `@TransactionalEventListener(AFTER_COMMIT)` y `@Async`: solo se ejecutan si la operación se guardó, en un pool propio (`ThreadPoolTaskExecutor`, hilos `muvu-async-*`). **Son asíncronos** porque un correo puede tardar segundos y el usuario no debe esperarlo; si falla, queda en el log sin afectar la operación. Además desacoplan los services: `ReservaService` no sabe cómo se envían los correos.
 
 ## 9. Endpoints
 
-Base: `http://localhost:8081/api/v1`. Las rutas protegidas usan el header `Authorization: Bearer <token>`.
+Base: `/api/v1`. Las rutas protegidas usan `Authorization: Bearer <token>`. Los listados (`/habitaciones`, `/habitaciones/cercanas`, `/reservas`, `/estudiantes` y las calificaciones) son **paginados** con `page` y `size`.
 
-| Recurso | Endpoints | Acceso |
+| Recurso | Endpoints principales | Acceso |
 |---|---|---|
 | Auth | `POST /auth/register/estudiante`, `/auth/register/arrendador`, `/auth/login`, `/auth/refresh`, `/auth/forgot-password`, `/auth/reset-password` | Público |
-| Habitaciones | `GET /habitaciones`, `/habitaciones/{id}`, `/habitaciones/cercanas?universidadId=&radioKm=` | Público |
-| | `POST /habitaciones`, `PUT` y `DELETE /habitaciones/{id}` | Arrendador dueño |
-| Imágenes | `GET /habitaciones/{id}/imagenes` · `POST` (dueño) · `DELETE /imagenes/{id}` (dueño) | Público / Arrendador |
-| Calificaciones | `GET /habitaciones/{id}/calificaciones` (público), `GET /estudiantes/{id}/calificaciones`, `GET /calificaciones/{id}` | Público / Autenticado |
-| | `POST /calificaciones` · `DELETE /calificaciones/{id}` | Estudiante / Autor o Admin |
-| Reservas | `GET /reservas`, `GET /reservas/{id}` | Estudiante o arrendador involucrado |
-| | `POST /reservas`, `PATCH /reservas/{id}/cancelar` · `PATCH /reservas/{id}/confirmar` | Estudiante / Arrendador dueño |
-| Arrendadores | `GET /arrendadores/{id}` · `PUT` (el propio) · `PATCH /{id}/verificar` (Admin) · `DELETE` (el propio o Admin) | Autenticado |
-| Estudiantes | `GET /estudiantes` (Admin) · `GET /{id}` · `PUT` (el propio) · `GET /{id}/perfil` (Arrendador) · `DELETE` (el propio o Admin) | Autenticado |
-| Universidades | `GET /universidades`, `/{id}` (público) · `POST`, `DELETE` (Admin) | Público / Admin |
+| Habitaciones | `GET /habitaciones`, `/habitaciones/{id}`, `/habitaciones/cercanas` · `POST`, `PUT`, `DELETE` | Público / Arrendador dueño |
+| Imágenes y calificaciones | `/habitaciones/{id}/imagenes`, `/habitaciones/{id}/calificaciones`, `/estudiantes/{id}/calificaciones`, `POST /calificaciones` | Público / Arrendador / Estudiante |
+| Reservas | `GET`, `POST /reservas` · `PATCH /reservas/{id}/cancelar` · `PATCH /reservas/{id}/confirmar` | Estudiante / Arrendador dueño |
+| Arrendadores y estudiantes | `GET`, `PUT`, `DELETE /{id}` · `PATCH /arrendadores/{id}/verificar` (Admin) · `GET /estudiantes/{id}/perfil` | Autenticado |
+| Universidades | `GET` (público) · `POST`, `DELETE` (Admin) | Público / Admin |
 | Pagos de publicidad | `POST /pagos-publicidad` (30 = 30 días, 54 = 60 días), `GET /pagos-publicidad` | Arrendador |
 
-La colección [`postman_collection.json`](postman_collection.json) documenta cada endpoint con descripción, ejemplos y autorización por carpeta.
+La colección [`postman_collection.json`](postman_collection.json) documenta cada endpoint con descripción, ejemplos y autorización.
 
 ## 10. Ejecución local
 
 1. **Base de datos:** `cd desarrollo && docker compose up -d` (PostgreSQL en el puerto 5433).
-2. **Variables de entorno:** copia `desarrollo/.env.example` a `desarrollo/.env` y complétalo:
+2. **Variables de entorno:** copiar `desarrollo/.env.example` a `desarrollo/.env` y completar:
 
 | Variable | Uso |
 |---|---|
 | `JWT_SECRET` | Firma de los tokens (mínimo 32 caracteres) |
-| `JWT_EXPIRATION`, `JWT_REFRESH_EXPIRATION`, `JWT_RESET_EXPIRATION` | Duración en ms del access token, el refresh token y el token de recuperación (opcionales) |
-| `GOOGLE_MAPS_API_KEY` | Geocodificar direcciones |
-| `STRIPE_SECRET_KEY` | Clave de prueba (`sk_test_...`) |
-| `MAIL_USERNAME`, `MAIL_PASSWORD` | Cuenta de Gmail y su contraseña de aplicación |
-| `CORS_ALLOWED_ORIGINS` | Frontends permitidos (opcional) |
-| `DB_USERNAME`, `DB_PASSWORD` | Credenciales de la base de datos (opcional, por defecto `postgres`) |
+| `GOOGLE_MAPS_API_KEY`, `STRIPE_SECRET_KEY` | Geocodificación y pagos de prueba |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Gmail y su contraseña de aplicación |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `PORT` | Opcionales en local; se usan en producción |
+| `JWT_*_EXPIRATION`, `CORS_ALLOWED_ORIGINS` | Opcionales, con valores por defecto |
 
-3. **Ejecutar:** `./mvnw spring-boot:run` desde `desarrollo/`. La API queda en `http://localhost:8081/api/v1`.
-4. **Pruebas:** `./mvnw test` (pruebas unitarias con Mockito; el reporte de cobertura de JaCoCo queda en `target/site/jacoco`).
+3. **Ejecutar:** `./mvnw spring-boot:run` desde `desarrollo/` → `http://localhost:8080/api/v1`.
+4. **Pruebas:** `./mvnw test`; el reporte de JaCoCo queda en `target/site/jacoco`.
 
-Al arrancar, `data.sql` carga datos de prueba: 11 universidades, 50 habitaciones, 30 imágenes, 16 reservas, 8 calificaciones y 15 pagos.
-
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `admin@muvu.com` | `admin123` | Admin |
-| `rosa.quispe@muvu.com` (y 4 más, verificados) | `Clave123!` | Arrendador |
-| `pedro.salas@muvu.com` (sin verificar) | `Clave123!` | Arrendador |
-| `ana.ramos@utec.edu.pe` (y 7 más) | `Clave123!` | Estudiante |
+`data.sql` carga datos de prueba. Usuarios: `admin@muvu.com` / `admin123` (Admin); `rosa.quispe@muvu.com` y `ana.ramos@utec.edu.pe` / `Clave123!` (arrendadora y estudiante).
 
 ## 11. GitHub & Management
 
-- **Gestión de tareas:** se usaron **GitHub Issues** (20 issues, la mayoría asignados a un integrante y algunos con el label `enhancement`).
+- **Gestión de tareas:** se usaron **GitHub Issues** para repartir el trabajo; cada issue tiene un responsable asignado y labels (por ejemplo `enhancement`).
 - **Control de versiones:** cada funcionalidad o corrección se trabajó en su propia rama y se integró a `main` mediante **pull requests** (más de 50).
-- **GitHub Projects:** _Pendiente._
-- **GitHub Actions:** _Pendiente._
+- **GitHub Actions:** no se configuró un pipeline; antes de cada pull request se ejecutaban `./mvnw test` y la colección de Postman. Un CI/CD con tests, cobertura y despliegue automático queda como trabajo futuro.
 
 ## 12. Deployment
 
-_Pendiente._
+El backend está desplegado en **AWS** con EC2 y RDS:
+
+```mermaid
+flowchart LR
+    U[Cliente] -->|HTTP :8080| EC2[EC2 · Java 21 + systemd]
+    EC2 -->|JDBC :5432| RDS[(RDS PostgreSQL 16)]
+```
+
+- **URL pública:** `http://<IP-ELASTICA>:8080/api/v1`
+- **EC2:** ejecuta el `.jar` como servicio `systemd`, que lo reinicia si falla.
+- **RDS:** PostgreSQL 16 sin acceso público.
+- **Security groups:** EC2 abre el puerto 8080 al público y el 22 (SSH) solo con llave; RDS abre el 5432 únicamente al security group de EC2.
+- **Variables de entorno en producción:** se definen en el servidor (`/etc/muvu.env`), nunca en el repositorio: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `MAIL_USERNAME` y `MAIL_PASSWORD`.
 
 ## 13. Conclusión
 
 ### Logros del proyecto
-MuvU cubre el ciclo completo de alquiler: búsqueda por cercanía, verificación de arrendadores, reservas, calificaciones y publicidad pagada, con notificaciones por correo. La API es segura, consistente en sus errores y está documentada en Postman.
+MuvU cubre el ciclo completo de alquiler: búsqueda por cercanía, verificación, reservas, calificaciones y publicidad pagada, con correos automáticos, en una API segura y documentada.
 
 ### Aprendizajes clave
-- Modelar datos con herencia y relaciones *lazy* sin consultas N+1.
-- Separar responsabilidades con DTOs, services y un manejo global de errores.
+- Modelar herencia y relaciones *lazy* sin consultas N+1.
+- Separar responsabilidades con DTOs, services y manejo global de errores.
 - Autenticación sin estado con JWT, refresh tokens y roles.
-- Eventos y asincronía para no bloquear al usuario.
-- Trabajo en equipo con ramas y pull requests.
+- Eventos asíncronos y trabajo en equipo con ramas y pull requests.
 
 ### Trabajo futuro
-Frontend web y móvil, chat entre estudiante y arrendador, pago del alquiler en la plataforma, subida de imágenes a la nube, filtros por precio y documentación con Swagger/OpenAPI.
+Frontend web y móvil, chat entre estudiante y arrendador, pago del alquiler en la plataforma, subida de imágenes a S3, filtros por precio, documentación con Swagger/OpenAPI y CI/CD con GitHub Actions.
 
 ## 14. Apéndices
 
 ### Licencia
-_Pendiente._
+Distribuido bajo la licencia **MIT** (ver [LICENSE](LICENSE)).
 
 ### Referencias
 - Spring Boot: https://docs.spring.io/spring-boot/

@@ -42,7 +42,7 @@ public class HabitacionService {
     private final ArrendadorRepository arrendadorRepository;
     private final UsuarioService usuarioService;
     private final ApplicationEventPublisher publisher;
-    private final UniversidadRepository universidadRepository; // <-- Inyección añadida
+    private final UniversidadRepository universidadRepository;
 
     // Búsqueda por cercanía, filtro de radio y ordenamiento
     public Page<HabitacionResponseDTO> findCercanas(Long universidadId, Double radioKm, Pageable pageable) {

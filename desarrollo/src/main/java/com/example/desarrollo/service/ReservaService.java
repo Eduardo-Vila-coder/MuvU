@@ -19,6 +19,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -47,18 +50,18 @@ public class ReservaService {
         return toDTO(reserva);
     }
 
-    public List<ReservaResponseDTO> findMisReservas() {
+    public Page<ReservaResponseDTO> findMisReservas(Pageable pageable) {
         Long miId = usuarioService.getIdUsuarioActual();
         Usuario yo = usuarioRepository.findById(miId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        List<Reserva> reservas = switch (yo.getRol()) {
-            case ESTUDIANTE -> reservaRepository.findByEstudianteId(miId);
-            case ARRENDADOR -> reservaRepository.findByHabitacionArrendadorId(miId);
-            case ADMIN      -> reservaRepository.findAll();
+        Page<Reserva> reservas = switch (yo.getRol()) {
+            case ESTUDIANTE -> reservaRepository.findByEstudianteId(miId, pageable);
+            case ARRENDADOR -> reservaRepository.findByHabitacionArrendadorId(miId, pageable);
+            case ADMIN      -> reservaRepository.findAll(pageable);
         };
 
-        return reservas.stream().map(this::toDTO).toList();
+        return reservas.map(this::toDTO);
     }
 
     @Transactional

@@ -92,9 +92,9 @@ public class PagoPublicidadService {
                 .toList();
     }
 
-    //Tarifas fijas (30 soles = 30 días | 54 soles = 60 días)
+    // Tarifas fijas: 30 soles = 30 días | 54 soles = 60 días
     private LocalDate calcularFechaFin(LocalDate fechaInicio, Double monto) {
-        if (Double.compare(monto, 30.0) == 0) { //bueno, resulta que el monto == 30.0, puede fallar xd
+        if (Double.compare(monto, 30.0) == 0) {
             return fechaInicio.plusDays(30);
         } else if (Double.compare(monto, 54.0) == 0) {
             return fechaInicio.plusDays(60);

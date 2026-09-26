@@ -20,7 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service
@@ -82,23 +83,19 @@ public class CalificacionService {
         return toResponseDTO(calificacion);
     }
 
-    public List<CalificacionResponseDTO> findByHabitacion(Long habitacionId) {
+    public Page<CalificacionResponseDTO> findByHabitacion(Long habitacionId, Pageable pageable) {
         if (!habitacionRepository.existsById(habitacionId)) {
             throw new ResourceNotFoundException("No existe habitacion con el ID: " + habitacionId);
         }
-        return calificacionRepository.findByReceptorId(habitacionId).stream()
-                .map(this::toResponseDTO)
-                .toList();
+        return calificacionRepository.findByReceptorId(habitacionId, pageable).map(this::toResponseDTO);
     }
 
 
-    public List<CalificacionResponseDTO> findByEstudiante(Long estudianteId) {
+    public Page<CalificacionResponseDTO> findByEstudiante(Long estudianteId, Pageable pageable) {
         if (!estudianteRepository.existsById(estudianteId)) {
             throw new ResourceNotFoundException("No existe estudiante con el ID: " + estudianteId);
         }
-        return calificacionRepository.findByAutorId(estudianteId).stream()
-                .map(this::toResponseDTO)
-                .toList();
+        return calificacionRepository.findByAutorId(estudianteId, pageable).map(this::toResponseDTO);
     }
 
     @Transactional
