@@ -258,7 +258,7 @@ La colección [`postman_collection.json`](postman_collection.json) documenta cad
 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `PORT` | Opcionales en local; se usan en producción |
 | `JWT_*_EXPIRATION`, `CORS_ALLOWED_ORIGINS` | Opcionales, con valores por defecto |
 
-3. **Ejecutar:** `./mvnw spring-boot:run` desde `desarrollo/` → `http://localhost:8081/api/v1`.
+3. **Ejecutar:** `./mvnw spring-boot:run` desde `desarrollo/` → `http://localhost:8080/api/v1`.
 4. **Pruebas:** `./mvnw test`; el reporte de JaCoCo queda en `target/site/jacoco`.
 
 `data.sql` carga datos de prueba. Usuarios: `admin@muvu.com` / `admin123` (Admin); `rosa.quispe@muvu.com` y `ana.ramos@utec.edu.pe` / `Clave123!` (arrendadora y estudiante).
@@ -275,14 +275,14 @@ El backend está desplegado en **AWS** con EC2 y RDS:
 
 ```mermaid
 flowchart LR
-    U[Cliente] -->|HTTP :8081| EC2[EC2 · Java 21 + systemd]
+    U[Cliente] -->|HTTP :8080| EC2[EC2 · Java 21 + systemd]
     EC2 -->|JDBC :5432| RDS[(RDS PostgreSQL 16)]
 ```
 
-- **URL pública:** `http://<IP-ELASTICA>:8081/api/v1`
+- **URL pública:** `http://<IP-ELASTICA>:8080/api/v1`
 - **EC2:** ejecuta el `.jar` como servicio `systemd`, que lo reinicia si falla.
 - **RDS:** PostgreSQL 16 sin acceso público.
-- **Security groups:** EC2 abre el puerto 8081 al público y el 22 (SSH) solo con llave; RDS abre el 5432 únicamente al security group de EC2.
+- **Security groups:** EC2 abre el puerto 8080 al público y el 22 (SSH) solo con llave; RDS abre el 5432 únicamente al security group de EC2.
 - **Variables de entorno en producción:** se definen en el servidor (`/etc/muvu.env`), nunca en el repositorio: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `MAIL_USERNAME` y `MAIL_PASSWORD`.
 
 ## 13. Conclusión

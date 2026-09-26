@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "MuvU - API REST v1",
-    "description": "API de **MuvU**: estudiantes universitarios encuentran y reservan habitaciones cerca de su universidad, y arrendadores las publican y destacan.\n\n**Cómo usarla**\n1. Levanta la base de datos (`docker compose up -d` en `desarrollo/`) y la app (`http://localhost:8081`). Al arrancar, `data.sql` carga los usuarios y datos de prueba.\n2. Importa este archivo en Postman.\n3. Ejecuta la colección completa con el **Runner** en orden: la carpeta *0. Auth* guarda los tokens y el resto los usa.\n\n**Autorización:** cada carpeta define su tipo (`No Auth` o `Bearer` con el token de su rol) y sus requests la heredan. La carpeta *5. Errores y seguridad* define la autorización en cada request.\n\n**Usuarios de prueba (data.sql):** `admin@muvu.com` / `admin123`, `rosa.quispe@muvu.com` / `Clave123!` (arrendadora), `ana.ramos@utec.edu.pe` / `Clave123!` (estudiante).\n\n**Servicios externos:** crear habitación y universidad usa Google Maps (`GOOGLE_MAPS_API_KEY`); pagar publicidad usa Stripe (`STRIPE_SECRET_KEY`); los correos usan Gmail (`MAIL_USERNAME`/`MAIL_PASSWORD`). Sin esas claves, esos requests fallan y el resto de la colección sigue funcionando.\n\n**Errores:** todas las respuestas de error tienen el formato `{timestamp, status, error, message, path}`.",
+    "description": "API de **MuvU**: estudiantes universitarios encuentran y reservan habitaciones cerca de su universidad, y arrendadores las publican y destacan.\n\n**Cómo usarla**\n1. Levanta la base de datos (`docker compose up -d` en `desarrollo/`) y la app (`http://localhost:8080`). Al arrancar, `data.sql` carga los usuarios y datos de prueba.\n2. Importa este archivo en Postman.\n3. Ejecuta la colección completa con el **Runner** en orden: la carpeta *0. Auth* guarda los tokens y el resto los usa.\n\n**Autorización:** cada carpeta define su tipo (`No Auth` o `Bearer` con el token de su rol) y sus requests la heredan. La carpeta *5. Errores y seguridad* define la autorización en cada request.\n\n**Usuarios de prueba (data.sql):** `admin@muvu.com` / `admin123`, `rosa.quispe@muvu.com` / `Clave123!` (arrendadora), `ana.ramos@utec.edu.pe` / `Clave123!` (estudiante).\n\n**Servicios externos:** crear habitación y universidad usa Google Maps (`GOOGLE_MAPS_API_KEY`); pagar publicidad usa Stripe (`STRIPE_SECRET_KEY`); los correos usan Gmail (`MAIL_USERNAME`/`MAIL_PASSWORD`). Sin esas claves, esos requests fallan y el resto de la colección sigue funcionando.\n\n**Errores:** todas las respuestas de error tienen el formato `{timestamp, status, error, message, path}`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -3236,7 +3236,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8081/api/v1",
+      "value": "http://localhost:8080/api/v1",
       "type": "string",
       "description": "URL base de la API (versión 1)"
     },
