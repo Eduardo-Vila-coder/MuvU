@@ -271,19 +271,19 @@ La colección [`postman_collection.json`](postman_collection.json) documenta cad
 
 ## 12. Deployment
 
-El backend está desplegado en **AWS** con EC2 y RDS:
+Desplegado en **AWS** (us-east-1) con **EC2 + RDS**:
 
 ```mermaid
 flowchart LR
-    U[Cliente] -->|HTTP :8080| EC2[EC2 · Java 21 + systemd]
-    EC2 -->|JDBC :5432| RDS[(RDS PostgreSQL 16)]
+    U[Cliente] -->|HTTP :8080| EC2[EC2 t2.small · Java 21 + systemd]
+    EC2 -->|JDBC :5432| RDS[(RDS PostgreSQL 18 · privada)]
 ```
 
-- **URL pública:** `http://<IP-ELASTICA>:8080/api/v1`
-- **EC2:** ejecuta el `.jar` como servicio `systemd`, que lo reinicia si falla.
-- **RDS:** PostgreSQL 16 sin acceso público.
-- **Security groups:** EC2 abre el puerto 8080 al público y el 22 (SSH) solo con llave; RDS abre el 5432 únicamente al security group de EC2.
-- **Variables de entorno en producción:** se definen en el servidor (`/etc/muvu.env`), nunca en el repositorio: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `MAIL_USERNAME` y `MAIL_PASSWORD`.
+- **URL pública:** `http://34.232.110.84:8080/api/v1` (IP elástica).
+- **EC2:** el `.jar` corre como servicio `systemd` (se reinicia si falla).
+- **RDS:** PostgreSQL 18 (`db.t4g.micro`, Single-AZ, cifrada), no accesible públicamente.
+- **Security groups:** `muvu-app-sg` abre el 8080 (API) y el 22 (SSH con llave); `rds-ec2-1` abre el 5432 solo al security group del EC2.
+- **Variables de entorno:** en el servidor (`/etc/muvu.env`, permisos 600), nunca en el repositorio: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `MAIL_USERNAME` y `MAIL_PASSWORD`.
 
 ## 13. Conclusión
 
