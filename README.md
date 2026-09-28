@@ -290,7 +290,7 @@ flowchart LR
 - _**Log Admin**_
 ![Log Admin.png](Images/Log%20Admin.png)
 - - _**Log Arrendador**_
-![Log estudiante.png](Images/Log%20estudiante.png)
+![Log arrendador.png](Images/Log%20arrendador.png)
 
 ## 13. Conclusión
 
