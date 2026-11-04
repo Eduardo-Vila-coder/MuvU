@@ -285,6 +285,13 @@ flowchart LR
 - **Security groups:** `muvu-app-sg` abre el 8080 (API) y el 22 (SSH con llave); `rds-ec2-1` abre el 5432 solo al security group del EC2.
 - **Variables de entorno:** en el servidor (`/etc/muvu.env`, permisos 600), nunca en el repositorio: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `MAIL_USERNAME` y `MAIL_PASSWORD`.
 
+- **Pruebas con la URL pública:**
+![Prueba en Postman con la URL del Deploy.png](Images/Prueba%20en%20Postman%20con%20la%20URL%20del%20Deploy.png)
+- _**Log Admin**_
+![Log Admin.png](Images/Log%20Admin.png)
+- - _**Log Arrendador**_
+![Log arrendador.png](Images/Log%20arrendador.png)
+
 ## 13. Conclusión
 
 ### Logros del proyecto
