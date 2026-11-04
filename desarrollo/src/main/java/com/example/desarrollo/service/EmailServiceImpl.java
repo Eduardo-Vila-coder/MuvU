@@ -1,5 +1,6 @@
 package com.example.desarrollo.service;
 
+
 import lombok.extern.slf4j.Slf4j;
 import com.example.desarrollo.model.Mail;
 import jakarta.mail.MessagingException;
@@ -12,6 +13,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import java.time.Year;
 
 @Slf4j
 @Service
@@ -24,11 +26,21 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String remitente;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     @Override
     public void sendEmailWithThymeLeaf(Mail mail) {
         Context context = new Context();
+        context.setVariable("title", mail.getSubject().replaceFirst("^MuvU:\\s*", ""));
         context.setVariable("body", mail.getBody());
+        context.setVariable("frontendUrl", frontendUrl);
+        context.setVariable("actionUrl", mail.getActionUrl());
+        context.setVariable("actionText", mail.getActionText());
+        context.setVariable("year", Year.now().getValue());
+
         String html = templateEngine.process("ThymeLeafMail", context);
+
 
         for (String destinatario : mail.getTo()) {
             try {

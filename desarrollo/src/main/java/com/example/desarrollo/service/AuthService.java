@@ -24,6 +24,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -38,6 +41,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventPublisher publisher;
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Transactional
     public TokenResponseDTO registerEstudiante(EstudianteRequestDTO dto) {
@@ -99,12 +104,14 @@ public class AuthService {
     public void forgotPassword(ForgotPasswordRequestDTO dto) {
         usuarioRepository.findByCorreo(dto.getCorreo()).ifPresent(usuario -> {
             String token = jwtService.generateResetToken(usuario);
-            publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.para(usuario.getCorreo(),
+            String enlace = frontendUrl + "/reset-password?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+            publisher.publishEvent(new NotificacionCorreoEvent(this, Mail.conAccion(usuario.getCorreo(),
                     "MuvU: restablecer tu contraseña",
                     "Hola " + usuario.getNombre() + ", recibimos una solicitud para restablecer tu contraseña. "
-                            + "Usa este código en POST /api/v1/auth/reset-password (vence en pocos minutos): " + token
-                            + " . Si no fuiste tú, ignora este correo.")));
-            log.info("Token de recuperación enviado al usuario {}", usuario.getId());
+                            + "Haz clic en el botón para crear una nueva. El enlace vence en 15 minutos. "
+                            + "Si no fuiste tú, ignora este correo.",
+                    enlace, "Restablecer contraseña")));
+            log.info("Enlace de recuperación enviado al usuario {}", usuario.getId());
         });
     }
 
